@@ -1,16 +1,26 @@
 [project]
 name = "url-shortener-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "High-performance URL shortener backend with Turso + Redis caching"
 readme = "README.md"
 authors = [
     { name = "Gaurav5189", email = "gauravsethi4627@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.141.1",
+    "sqlmodel>=0.0.24",
+    "sqlalchemy-libsql>=0.1.0",
+    "upstash-redis>=1.1.0",
+    "pydantic-settings>=2.8.0",
+    "python-dotenv>=1.1.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "httpx>=0.28.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]
