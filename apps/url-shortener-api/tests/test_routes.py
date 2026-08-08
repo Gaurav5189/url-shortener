@@ -62,6 +62,7 @@ def mock_redis():
 @pytest.fixture()
 def client(mock_redis):
     """Provide a FastAPI TestClient with overridden dependencies."""
+    # pyrefly: ignore [missing-import]
     from main import app
 
     app.dependency_overrides[session_module.get_session] = _get_test_session

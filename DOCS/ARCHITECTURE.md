@@ -1,48 +1,120 @@
 # ARCHITECTURE.md
 
-## 1. App Flow & Architecture
-The system is divided into two distinct operational paths to decouple high-speed reads from database writes.
+## 1. App Flow & Architecture (Based on `shortyurl_v2` Blueprint)
 
-**The Fast Path (URL Redirection / Consumption)**
-*   **Routing:** Client -> Next.js Edge Middleware.
-*   **Cache Check:** Middleware queries Upstash Redis (`GET url:{short_code}`).
-*   **Cache HIT:** Middleware returns HTTP 302 Redirect instantly (~15ms). Middleware triggers a non-blocking `INCR analytics:clicks:{short_code}` to Upstash.
-*   **Cache MISS:** Request proxies to FastAPI backend.
+The system decouples high-speed read redirections from database writes using a Fast Path, Slow Path, and Background Sync Path.
 
-**The Slow Path (URL Creation & Cache Miss Recovery)**
-*   **Creation:** Next.js UI -> `POST /api/urls/shorten` -> FastAPI.
-*   **Storage:** FastAPI inserts the long URL into Turso (SQLite), gets the auto-increment `id`, converts it to a 5-character Base62 string, updates the SQLite row, caches it in Redis (84-day TTL), and returns the short code.
-*   **Miss Recovery:** FastAPI queries SQLite. If `expires_at > NOW`, it caches the URL in Redis and returns HTTP 302. If expired, returns HTTP 404.
+```
+                  ┌─────────────────────────────────────────┐
+                  │          Client Browser Request         │
+                  └────────────────────┬────────────────────┘
+                                       │
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │       Next.js Edge Middleware          │
+                  └────────────────────┬────────────────────┘
+                                       │
+                         Cache Check   │
+                         GET url:{code}│
+                                       ▼
+                   ┌──────────────────────────────────────┐
+                   │        Upstash Redis Cache           │
+                   └───────┬──────────────────────┬───────┘
+                           │                      │
+                  HIT      │                      │ MISS
+             (Redirect 302)│                      │ (Proxy to FastAPI)
+                           ▼                      ▼
+                   ┌───────────────┐      ┌───────────────┐
+                   │ Direct 302 to │      │ FastAPI      │
+                   │ Long URL      │      │ Backend       │
+                   └───────────────┘      └───────┬───────┘
+                           │                      │
+                  Async    │                      │ Base62 Decode -> ID
+                 INCR      │                      │ Primary Key Lookup
+                           ▼                      ▼
+                   ┌───────────────┐      ┌───────────────┐
+                   │ Redis Counter │      │ Turso DB      │
+                   │ analytics:    │      │ (SQLite)      │
+                   │ clicks:{code} │      └───────────────┘
+                   └───────────────┘
+```
 
-**The Background Path (Cron Jobs)**
-*   **Analytics Sync (Every 30m):** Vercel Cron pings FastAPI. FastAPI runs an atomic `GETSET` on Redis click counters and increments the `clicks` column in SQLite.
-*   **Expiration Purge (Every 24h):** Vercel Cron pings FastAPI. FastAPI executes a bulk `DELETE` in SQLite and Redis for all rows where `expires_at <= NOW`.
+### The Fast Path (Edge Redirection / Cache Hit)
+* **Routing**: Client -> Next.js Edge Middleware (`apps/web/middleware.ts`).
+* **Cache Check**: Middleware queries Upstash Redis (`GET url:{short_code}`).
+* **Cache HIT**: Middleware issues HTTP 302 Redirect directly to the long URL (~15ms response).
+* **Analytics**: Middleware sends a non-blocking `INCR analytics:clicks:{short_code}` to Redis.
 
-## 2. Tech Stack
-*   **Frontend / Edge:** Next.js (App Router), deployed on Vercel.
-*   **Backend:** FastAPI (Python), deployed on Azure App Service / FastAPI Cloud.
-*   **Database:** Turso (SQLite) for persistent storage.
-*   **Cache & Edge State:** Upstash (Serverless Redis).
+### The Slow Path (Cache Miss Fallback & URL Creation)
+* **URL Creation (`POST /api/urls/shorten`)**:
+  1. Client -> Next.js UI -> `POST /api/urls/shorten` -> FastAPI.
+  2. FastAPI inserts row into Turso DB (`URLMapping` table) -> gets auto-increment `id`.
+  3. Base62 encodes `id` -> 5-character `short_code`.
+  4. Updates row with `short_code`.
+  5. Caches in Redis: `SET url:{short_code} long_url EX 43200` (**12-Hour Cache TTL**).
+  6. Returns `{ short_code, short_url }`.
+* **Cache Miss Recovery (`GET /{short_code}`)**:
+  1. Next.js Middleware proxies request to FastAPI.
+  2. FastAPI decodes Base62 `short_code` -> integer `id`.
+  3. Fast primary key lookup in Turso DB by `id`.
+  4. **Lazy Enforcement**: Checks `expires_at > UTC_NOW` (84-day link lifespan). If expired -> HTTP 404.
+  5. Re-populates Redis cache: `SET url:{short_code} long_url EX 43200` (12-Hour TTL).
+  6. Increments analytics in Redis: `INCR analytics:clicks:{short_code}`.
+  7. Returns HTTP 302 Redirect.
 
-## 3. Folder & File Structure
+### The Background Path (Cron Jobs & Analytics Sync)
+* **Analytics Sync (`POST /api/cron/flush-analytics`)**:
+  - Vercel Cron triggers endpoint every 30 minutes.
+  - Scans Redis keys matching `analytics:clicks:*`.
+  - Executes atomic `GETSET analytics:clicks:{short_code} 0` to read accumulated clicks and reset the counter without race conditions.
+  - Performs batch SQL `UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`.
+* **Expiration Purge (`POST /api/cron/purge-expired`)**:
+  - Vercel Cron triggers endpoint every 24 hours.
+  - Executes bulk SQL `DELETE FROM url_mapping WHERE expires_at <= UTC_NOW`.
+  - Evicts corresponding Redis keys.
+
+---
+
+## 2. Tech Stack & Requirements
+
+* **Frontend / Edge**: Next.js 14+ (App Router), deployed on Vercel (`apps/web`).
+* **Backend**: FastAPI, SQLModel, Pydantic, Python 3.12 (`apps/url-shortener-api`).
+* **Database**: Turso (libSQL / SQLite) via `sqlalchemy-libsql==0.2.0` & `libsql-experimental==0.0.55`.
+* **Cache & Analytics**: Upstash Redis (REST API via `upstash-redis`).
+
+---
+
+## 3. Monorepo Directory Structure
+
 ```text
 /monorepo-root
-├── /frontend               # Next.js Application
-│   ├── /app
-│   │   ├── layout.tsx
-│   │   ├── page.tsx        # UI for inputting long URLs
-│   │   └── /api            # Next.js API Routes (if needed for internal proxying)
-│   ├── middleware.ts       # Edge Middleware for Redis checking & 302 Redirects
-│   └── vercel.json         # Vercel Cron Job definitions
+├── /.agents
+│   └── MEMORY.md                 # Persistent agent state & technical gotchas
 │
-└── /backend                # FastAPI Application
-    ├── main.py             # App entry point & lifespan events
-    ├── /api
-    │   ├── routes.py       # POST /shorten, GET /{short_code}
-    │   └── cron.py         # POST /cron/flush-analytics, POST /cron/purge
-    ├── /core
-    │   ├── base62.py       # Integer to 5-char Base62 conversion logic
-    │   └── config.py       # Env vars (Turso, Upstash, Cron Secrets)
-    └── /db
-        ├── models.py       # SQLModel schema (id, short_code, long_url, clicks, etc.)
-        └── session.py      # Turso DB connection
+├── /DOCS
+│   ├── ARCHITECTURE.md           # System flow & architecture (blueprint reference)
+│   ├── PHASES.md                 # Roadmap and phase breakdown
+│   ├── PRD.md                    # Product requirements
+│   └── RULES.md                  # Development rules & AI constraints
+│
+├── /apps
+│   ├── /url-shortener-api        # FastAPI Backend Project
+│   │   ├── .python-version       # Pinned to Python 3.12 (DO NOT REMOVE)
+│   │   ├── pyproject.toml        # Dependencies and project config
+│   │   ├── main.py               # App entry point, CORS, lifespan, /healthz
+│   │   ├── /src/url_shortener_api
+│   │   │   ├── /api/routes.py    # POST /api/urls/shorten, GET /{short_code}
+│   │   │   ├── /core
+│   │   │   │   ├── base62.py     # 5-character Base62 encode/decode logic
+│   │   │   │   └── config.py     # Pydantic Settings
+│   │   │   └── /db
+│   │   │       ├── models.py     # SQLModel schema (URLMapping)
+│   │   │       └── session.py    # Turso database connection engine
+│   │   └── /tests
+│   │       ├── test_base62.py    # 17 unit tests
+│   │       └── test_routes.py    # 14 integration tests
+│   │
+│   └── /web                      # Next.js Frontend Project (Phase 2)
+│       ├── /app                  # App Router pages and UI
+│       └── middleware.ts         # Edge Middleware for Redis checking & 302 redirects
+```
