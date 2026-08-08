@@ -4,40 +4,7 @@
 
 The system decouples high-speed read redirections from database writes using a Fast Path, Slow Path, and Background Sync Path.
 
-```
-                  ┌─────────────────────────────────────────┐
-                  │          Client Browser Request         │
-                  └────────────────────┬────────────────────┘
-                                       │
-                                       ▼
-                  ┌─────────────────────────────────────────┐
-                  │       Next.js Edge Middleware          │
-                  └────────────────────┬────────────────────┘
-                                       │
-                         Cache Check   │
-                         GET url:{code}│
-                                       ▼
-                   ┌──────────────────────────────────────┐
-                   │        Upstash Redis Cache           │
-                   └───────┬──────────────────────┬───────┘
-                           │                      │
-                  HIT      │                      │ MISS
-             (Redirect 302)│                      │ (Proxy to FastAPI)
-                           ▼                      ▼
-                   ┌───────────────┐      ┌───────────────┐
-                   │ Direct 302 to │      │ FastAPI      │
-                   │ Long URL      │      │ Backend       │
-                   └───────────────┘      └───────┬───────┘
-                           │                      │
-                  Async    │                      │ Base62 Decode -> ID
-                 INCR      │                      │ Primary Key Lookup
-                           ▼                      ▼
-                   ┌───────────────┐      ┌───────────────┐
-                   │ Redis Counter │      │ Turso DB      │
-                   │ analytics:    │      │ (SQLite)      │
-                   │ clicks:{code} │      └───────────────┘
-                   └───────────────┘
-```
+![System Architecture Blueprint](../assets/shortyurl_v2.png)
 
 ### The Fast Path (Edge Redirection / Cache Hit)
 * **Routing**: Client -> Next.js Edge Middleware (`apps/web/middleware.ts`).
