@@ -1,3 +1,6 @@
 .env
 INSTRUCTIONS-TESTING.md
 MEMORY.md
+TODO.md
+/node_modules
+cr_review.txt

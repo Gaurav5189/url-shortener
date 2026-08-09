@@ -1,12 +1,12 @@
 # LinkCut
 
-> **🚧 UNDER ACTIVE DEVELOPMENT**
+> **UNDER ACTIVE DEVELOPMENT**
 
 A high-performance, login-less URL shortening service built for sub-20ms redirect latency using Edge Caching, Base62 encoding, and non-blocking asynchronous analytics.
 
 ---
 
-## 🚧 Project Status & Roadmap
+## Project Status & Roadmap
 
 - `[x]` **Phase 1: Backend Core & Database (FastAPI + Turso)** ✅
   - Base62 5-character encoding ($62^5 = 916\text{M}$ unique codes)
@@ -24,7 +24,7 @@ A high-performance, login-less URL shortening service built for sub-20ms redirec
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 The system decouples read redirections from database writes across three operational paths:
 
@@ -36,7 +36,7 @@ The system decouples read redirections from database writes across three operati
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: FastAPI, SQLModel, Pydantic, Python 3.12 (`apps/url-shortener-api`)
 - **Database**: Turso (libSQL / SQLite) via `sqlalchemy-libsql`
@@ -45,7 +45,7 @@ The system decouples read redirections from database writes across three operati
 
 ---
 
-## 🚀 Quick Start (Backend)
+## Quick Start (Backend)
 
 ### 1. Prerequisites
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
@@ -78,7 +78,7 @@ uv run pytest tests/ -v
 
 ---
 
-## 📄 Documentation
+## Documentation
 
 Detailed architecture specifications and rules can be found in [/DOCS](./DOCS):
 - [PRD.md](./DOCS/PRD.md) — Product Requirements & Specifications
