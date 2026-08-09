@@ -54,6 +54,7 @@ def session():
 def mock_redis():
     """Provide a mocked Redis client and inject it into routes."""
     redis = MagicMock()
+    redis.get.return_value = None
     routes_module.set_redis_client(redis)
     yield redis
     routes_module.set_redis_client(None)

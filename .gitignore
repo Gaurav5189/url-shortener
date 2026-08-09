@@ -1,6 +1,9 @@
 .env
+.env.*
+!.env.example
 INSTRUCTIONS-TESTING.md
 MEMORY.md
 TODO.md
-/node_modules
+**/node_modules/
+**/.venv/
 cr_review.txt

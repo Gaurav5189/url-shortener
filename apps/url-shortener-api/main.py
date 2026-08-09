@@ -9,6 +9,8 @@ Lifespan events handle:
 import logging
 from contextlib import asynccontextmanager
 
+from urllib.parse import urlsplit
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -67,12 +69,15 @@ app = FastAPI(
 
 # ── CORS ────────────────────────────────────────────────────────────
 # Allow Next.js frontend (and localhost for development)
+_base = urlsplit(settings.BASE_URL)
+_frontend_origin = f"{_base.scheme}://{_base.netloc}"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",   # Next.js dev server
         "http://127.0.0.1:3000",
-        settings.BASE_URL,
+        _frontend_origin,
     ],
     allow_credentials=True,
     allow_methods=["*"],

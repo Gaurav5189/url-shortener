@@ -9,6 +9,7 @@ from collections.abc import Generator
 from sqlmodel import Session, SQLModel, create_engine
 
 from url_shortener_api.core.config import settings
+from url_shortener_api.db import models  # noqa: F401
 
 # ── Engine construction ─────────────────────────────────────────────
 # sqlalchemy-libsql dialect format:
@@ -22,22 +23,13 @@ from url_shortener_api.core.config import settings
 
 _raw_url = settings.TURSO_DATABASE_URL
 
-# Strip the `libsql://` scheme to extract just the host
-if _raw_url.startswith("libsql://"):
-    _host = _raw_url.removeprefix("libsql://")
-elif _raw_url.startswith("sqlite+libsql://"):
-    _host = _raw_url.removeprefix("sqlite+libsql://")
+if _raw_url.startswith("sqlite+libsql://"):
+    _db_url = _raw_url
+elif _raw_url.startswith("libsql://"):
+    host = _raw_url.removeprefix("libsql://").rstrip("/")
+    _db_url = f"sqlite+libsql://{host}/?secure=true"
 else:
-    _host = _raw_url
-
-# Construct the final SQLAlchemy URL
-# For remote Turso: sqlite+libsql://<host>/?secure=true
-_is_remote = "turso.io" in _host or "." in _host
-if _is_remote:
-    _db_url = f"sqlite+libsql://{_host}/?secure=true"
-else:
-    # Local file (e.g. for testing)
-    _db_url = f"sqlite+libsql:///{_host}"
+    _db_url = f"sqlite+libsql:///{_raw_url}"
 
 _connect_args: dict = {}
 if settings.TURSO_AUTH_TOKEN:

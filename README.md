@@ -55,7 +55,7 @@ The system decouples read redirections from database writes across three operati
 Create `apps/url-shortener-api/.env` based on `.env.example`:
 
 ```ini
-TURSO_DATABASE_URL=libsql://<your-turso-db>.turso.io
+TURSO_DATABASE_URL=sqlite+libsql://<your-turso-db>.turso.io/?secure=true
 TURSO_AUTH_TOKEN=<your-turso-token>
 UPSTASH_REDIS_REST_URL=https://<your-redis-db>.upstash.io
 UPSTASH_REDIS_REST_TOKEN=<your-redis-token>
