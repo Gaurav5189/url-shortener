@@ -88,12 +88,22 @@ def shorten_url(
                 if expires.tzinfo is None:
                     expires = expires.replace(tzinfo=timezone.utc)
                 remaining = int((expires - datetime.now(timezone.utc)).total_seconds())
-                ttl = max(1, min(ttl, remaining))
-            _redis.set(
-                f"url:{short_code}",
-                long_url,
-                ex=ttl,
-            )
+                if remaining <= 0:
+                    # Already expired — skip caching entirely
+                    logger.debug("Skipping cache: url:%s has already expired", short_code)
+                else:
+                    ttl = min(ttl, remaining)
+                    _redis.set(
+                        f"url:{short_code}",
+                        long_url,
+                        ex=ttl,
+                    )
+            else:
+                _redis.set(
+                    f"url:{short_code}",
+                    long_url,
+                    ex=ttl,
+                )
         except Exception:
             logger.warning("Redis SET failed for url:%s — skipping cache", short_code)
 
@@ -152,12 +162,21 @@ def redirect_short_url(
                 if expires.tzinfo is None:
                     expires = expires.replace(tzinfo=timezone.utc)
                 remaining = int((expires - datetime.now(timezone.utc)).total_seconds())
-                ttl = max(1, min(ttl, remaining))
-            _redis.set(
-                f"url:{short_code}",
-                mapping.long_url,
-                ex=ttl,
-            )
+                if remaining <= 0:
+                    logger.debug("Skipping re-cache: url:%s has already expired", short_code)
+                else:
+                    ttl = min(ttl, remaining)
+                    _redis.set(
+                        f"url:{short_code}",
+                        mapping.long_url,
+                        ex=ttl,
+                    )
+            else:
+                _redis.set(
+                    f"url:{short_code}",
+                    mapping.long_url,
+                    ex=ttl,
+                )
         except Exception:
             logger.warning(
                 "Redis SET failed for url:%s — skipping cache", short_code

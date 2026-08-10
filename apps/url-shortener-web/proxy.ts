@@ -40,10 +40,12 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   // Proxy to FastAPI backend on Cache MISS or error
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8000';
   
-  // Create rewrite URL.
-  // Assuming the backend expects `GET /{short_code}`
-  const backendUrl = new URL(`/${shortCode}`, apiUrl);
-  
+  // Build URL from trusted API origin, then set pathname.
+  // NEVER use `new URL(\`/${shortCode}\`, apiUrl)` — that allows SSRF via
+  // path-relative resolution if shortCode starts with '/attacker.example'.
+  const backendUrl = new URL(apiUrl);
+  backendUrl.pathname = `/${shortCode}`;
+
   return NextResponse.rewrite(backendUrl);
 }
 

@@ -75,7 +75,7 @@ _frontend_origin = f"{_base.scheme}://{_base.netloc}"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",   # Next.js dev server
+        "http://localhost:3000",       # Next.js dev server (local)
         "http://127.0.0.1:3000",
         _frontend_origin,
     ],

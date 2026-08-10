@@ -38,8 +38,8 @@ export function ShortenWidget() {
       }
 
       const data = await res.json();
-      const baseUrl = typeof window !== 'undefined' ? window.location.host : 'ql.link';
-      setShortUrl(`${baseUrl}/${data.short_code}`);
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ql.link';
+      setShortUrl(`${origin}/${data.short_code}`);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "An error occurred while shortening the URL.");
@@ -48,11 +48,15 @@ export function ShortenWidget() {
     }
   };
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!shortUrl) return;
-    navigator.clipboard.writeText(`https://${shortUrl}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(shortUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy to clipboard. Please copy manually.");
+    }
   };
 
   return (
@@ -67,6 +71,7 @@ export function ShortenWidget() {
           <Link2 className="input-icon" size={20} />
           <input
             type="url"
+            aria-label="Destination URL"
             value={longUrl}
             onChange={(e) => setLongUrl(e.target.value)}
             placeholder="https://very-long-url.com/example/path..."
