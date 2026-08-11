@@ -77,8 +77,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",       # Next.js dev server (local)
         "http://127.0.0.1:3000",
+        "https://linkcut-nine.vercel.app",
         _frontend_origin,
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Support Vercel preview deployments dynamically
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
