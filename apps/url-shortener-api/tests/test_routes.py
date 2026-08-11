@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from url_shortener_api.api import routes as routes_module
 from url_shortener_api.db import session as session_module
@@ -31,8 +31,8 @@ _test_engine = create_engine(
 
 @pytest.fixture(autouse=True)
 def setup_db():
-    """Create tables before each test, drop after."""
-    SQLModel.metadata.create_all(_test_engine)
+    """Create tables and initialize sequence before each test, drop after."""
+    session_module.init_db(_test_engine)
     yield
     SQLModel.metadata.drop_all(_test_engine)
 
@@ -54,6 +54,7 @@ def session():
 def mock_redis():
     """Provide a mocked Redis client and inject it into routes."""
     redis = MagicMock()
+    redis.get.return_value = None
     routes_module.set_redis_client(redis)
     yield redis
     routes_module.set_redis_client(None)
@@ -106,9 +107,10 @@ class TestShortenEndpoint:
         )
         data = resp.json()
 
-        # Query the DB directly
-        mapping = session.get(URLMapping, 1)
+        # Query the DB directly (skip sentinel row which has short_code=None)
+        mapping = session.exec(select(URLMapping).where(URLMapping.short_code != None)).first()  # noqa: E711
         assert mapping is not None
+        assert mapping.id == 10000
         assert mapping.short_code == data["short_code"]
         assert "example.com" in mapping.long_url
         assert mapping.clicks == 0
@@ -146,7 +148,8 @@ class TestShortenEndpoint:
             json={"url": "https://example.com"},
         )
 
-        mapping = session.get(URLMapping, 1)
+        # Skip sentinel row (short_code=None)
+        mapping = session.exec(select(URLMapping).where(URLMapping.short_code != None)).first()  # noqa: E711
         assert mapping is not None
 
         # Check expires_at is approximately 84 days from now (±1 day tolerance)

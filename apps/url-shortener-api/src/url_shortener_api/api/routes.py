@@ -6,6 +6,7 @@ Endpoints:
 """
 
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
@@ -52,7 +53,7 @@ class ShortenResponse(BaseModel):
 
 
 @router.post("/api/urls/shorten", response_model=ShortenResponse)
-async def shorten_url(
+def shorten_url(
     body: ShortenRequest,
     session: Session = Depends(get_session),
 ) -> ShortenResponse:
@@ -71,23 +72,38 @@ async def shorten_url(
     # Step 1-2: Insert row and get auto-increment id
     mapping = URLMapping(long_url=long_url)
     session.add(mapping)
-    session.commit()
-    session.refresh(mapping)
+    session.flush()
 
     # Step 3-4: Generate short_code from id and update row
     short_code = base62.encode(mapping.id)
     mapping.short_code = short_code
-    session.add(mapping)
     session.commit()
 
     # Step 5: Cache in Redis (non-blocking, fire-and-forget)
     if _redis is not None:
         try:
-            _redis.set(
-                f"url:{short_code}",
-                long_url,
-                ex=settings.REDIS_CACHE_TTL_SECONDS,
-            )
+            ttl = settings.REDIS_CACHE_TTL_SECONDS
+            if mapping.expires_at is not None:
+                expires = mapping.expires_at
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=timezone.utc)
+                remaining = int((expires - datetime.now(timezone.utc)).total_seconds())
+                if remaining <= 0:
+                    # Already expired — skip caching entirely
+                    logger.debug("Skipping cache: url:%s has already expired", short_code)
+                else:
+                    ttl = min(ttl, remaining)
+                    _redis.set(
+                        f"url:{short_code}",
+                        long_url,
+                        ex=ttl,
+                    )
+            else:
+                _redis.set(
+                    f"url:{short_code}",
+                    long_url,
+                    ex=ttl,
+                )
         except Exception:
             logger.warning("Redis SET failed for url:%s — skipping cache", short_code)
 
@@ -100,7 +116,7 @@ async def shorten_url(
 
 
 @router.get("/{short_code}")
-async def redirect_short_url(
+def redirect_short_url(
     short_code: str,
     session: Session = Depends(get_session),
 ) -> RedirectResponse:
@@ -140,11 +156,27 @@ async def redirect_short_url(
     # Step 5: Re-cache in Redis
     if _redis is not None:
         try:
-            _redis.set(
-                f"url:{short_code}",
-                mapping.long_url,
-                ex=settings.REDIS_CACHE_TTL_SECONDS,
-            )
+            ttl = settings.REDIS_CACHE_TTL_SECONDS
+            if mapping.expires_at is not None:
+                expires = mapping.expires_at
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=timezone.utc)
+                remaining = int((expires - datetime.now(timezone.utc)).total_seconds())
+                if remaining <= 0:
+                    logger.debug("Skipping re-cache: url:%s has already expired", short_code)
+                else:
+                    ttl = min(ttl, remaining)
+                    _redis.set(
+                        f"url:{short_code}",
+                        mapping.long_url,
+                        ex=ttl,
+                    )
+            else:
+                _redis.set(
+                    f"url:{short_code}",
+                    mapping.long_url,
+                    ex=ttl,
+                )
         except Exception:
             logger.warning(
                 "Redis SET failed for url:%s — skipping cache", short_code
