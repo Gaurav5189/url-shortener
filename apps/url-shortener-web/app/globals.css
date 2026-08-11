@@ -288,6 +288,10 @@ input {
   font-size: 18px;
   font-weight: 600;
   color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .result-sub {
@@ -311,6 +315,8 @@ input {
   padding: 8px;
   border-radius: 8px;
   transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .copy-btn:hover {

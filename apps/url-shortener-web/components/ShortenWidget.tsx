@@ -70,12 +70,37 @@ export function ShortenWidget() {
 
   const handleCopy = async () => {
     if (!shortUrl) return;
+
+    // navigator.clipboard requires a secure context (https:// or localhost).
+    // On LAN HTTP access (e.g. http://192.168.x.x:3000), we fall back to the
+    // legacy execCommand approach which works in any context.
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(shortUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        return;
+      } catch {
+        // fall through to execCommand fallback
+      }
+    }
+
+    // Legacy fallback for insecure contexts (LAN IP, HTTP)
     try {
-      await navigator.clipboard.writeText(shortUrl);
+      const textarea = document.createElement("textarea");
+      textarea.value = shortUrl;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setError("Could not copy to clipboard. Please copy manually.");
+
     }
   };
 
