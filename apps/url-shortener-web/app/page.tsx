@@ -86,21 +86,15 @@ export default function Home() {
           </div>
 
           <div>
-            <h3 className="footer-heading">Product</h3>
+            <h2 className="footer-heading">Developers</h2>
             <div className="footer-links">
+              <a href="/docs" className="footer-link">Docs</a>
               <a href="https://github.com/Gaurav5189/url-shortener" className="footer-link">Repo</a>
             </div>
           </div>
 
           <div>
-            <h3 className="footer-heading">Developers</h3>
-            <div className="footer-links">
-              <a href="/docs" className="footer-link">Docs</a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="footer-heading">Legal</h3>
+            <h2 className="footer-heading">Legal</h2>
             <div className="footer-links">
               <a href="/privacy" className="footer-link">Privacy Policy</a>
               <a href="/terms" className="footer-link">Terms of Service</a>
