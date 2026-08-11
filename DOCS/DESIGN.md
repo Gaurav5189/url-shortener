@@ -142,6 +142,6 @@ Theme toggle: present in header. Simple sun/moon icon button, placed left of the
 
 ## 8. Open Items / Placeholders
 
-- `[Placeholder]` feature label needs a real value before ship.
-- `Advanced Analytics*` has an asterisk with no footnote visible — either add disclaimer text or remove the asterisk.
+- Feature labels updated to match implemented scope (Shortening, Expiration, Real-time Analytics).
+- `Advanced Analytics` footnote clarified: async batch synchronization via Vercel Cron.
 - Footer "Product" column (Features, Pricing, Integrations) and "Company" column (About Us, Careers, Blog) reference pages/sections that don't exist on this single-page site — confirm whether these are anchor links to be built, external links, or should be trimmed to match the site's actual scope (e.g. cut to just Repo, Docs, Privacy, Terms).

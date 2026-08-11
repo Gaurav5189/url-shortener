@@ -13,9 +13,9 @@
 ---
 
 ## Phase 2: Frontend & Edge Layer (Next.js + Upstash) — [STATUS: COMPLETED ✅]
-* `[x]` Initialize Next.js project in `apps/web`.
+* `[x]` Initialize Next.js project in `apps/url-shortener-web`.
 * `[x]` Build clean, modern UI for inputting long URLs and displaying/copying generated short links.
-* `[x]` Implement Next.js Edge Middleware (`middleware.ts`) to intercept `/{short_code}` requests.
+* `[x]` Implement Next.js Edge Middleware (`proxy.ts`) to intercept `/{short_code}` requests.
 * `[x]` Connect Edge Middleware to Upstash Redis:
   - **Cache HIT**: Return HTTP 302 Redirect directly from Edge (~15ms) + fire non-blocking `INCR analytics:clicks:{short_code}`.
   - **Cache MISS**: Proxy request to FastAPI backend (`GET /{short_code}`).

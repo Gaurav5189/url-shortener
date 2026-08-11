@@ -114,7 +114,14 @@ export function ShortenWidget() {
       {shortUrl && (
         <div className="result-row">
           <div className="result-info">
-            <span className="result-link">{shortUrl}</span>
+            <a 
+              className="result-link" 
+              href={shortUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              {shortUrl}
+            </a>
             <span className="result-sub">{lastLongUrl}</span>
           </div>
           <button 
