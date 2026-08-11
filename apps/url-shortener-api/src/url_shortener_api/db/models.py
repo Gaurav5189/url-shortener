@@ -33,6 +33,7 @@ class URLMapping(SQLModel, table=True):
     """
 
     __tablename__ = "url_mapping"
+    __table_args__ = {"sqlite_autoincrement": True}
 
     id: int | None = Field(default=None, primary_key=True)
     short_code: str | None = Field(default=None, unique=True, index=True)
