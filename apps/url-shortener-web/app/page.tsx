@@ -1,6 +1,6 @@
 import { Check, BookOpen, ExternalLink } from "lucide-react";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { LogoIcon } from "../components/Icons";
+import { LogoIcon } from "../components/LogoIcon";
 import { ShortenWidget } from "../components/ShortenWidget";
 
 export default function Home() {
@@ -9,7 +9,7 @@ export default function Home() {
       {/* Header */}
       <header className="header container">
         <div className="flex items-center gap-2">
-          <LogoIcon />
+          <LogoIcon className="text-accent" width={32} height={32} />
           <span style={{ fontSize: '18px', fontWeight: 700 }}>LinkCut</span>
         </div>
         <div className="header-right">
@@ -78,7 +78,7 @@ export default function Home() {
         <div className="container footer-grid">
           <div className="footer-logo-col">
             <div className="footer-logo">
-              <LogoIcon />
+              <LogoIcon className="text-accent" width={24} height={24} />
               <span>LinkCut</span>
             </div>
             <p className="footer-copy">© {new Date().getFullYear()} LinkCut Inc. All rights reserved.</p>

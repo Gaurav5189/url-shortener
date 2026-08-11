@@ -17,6 +17,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     pathname === '/' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/icon.svg') ||
     pathname.startsWith('/api/')
   ) {
     return NextResponse.next();
@@ -51,6 +52,6 @@ export default async function middleware(request: NextRequest, event: NextFetchE
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)',
   ],
 };
