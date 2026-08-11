@@ -8,19 +8,19 @@ A high-performance, login-less URL shortening service built for sub-20ms redirec
 
 ## Project Status & Roadmap
 
-- `[x]` **Phase 1: Backend Core & Database (FastAPI + Turso)** ✅
+- `[x]` **Phase 1: Backend Core & Database (FastAPI + Turso)**
   - Base62 5-character encoding ($62^5 = 916\text{M}$ unique codes)
   - Turso DB persistence (`URLMapping` schema)
   - Upstash Redis caching (12-hour TTL)
   - `POST /api/urls/shorten`, `GET /{short_code}`, `GET /healthz`
   - Automated test suite (**31/31 passing**)
-- `[ ]` **Phase 2: Next.js Frontend & Edge Middleware** ⏳ *(In Progress)*
+- `[x]` **Phase 2: Next.js Frontend & Edge Middleware**
   - Next.js 14 App Router landing page
   - Edge Middleware for instant 302 redirects from Redis (~15ms)
-- `[ ]` **Phase 3: Background Jobs & Analytics Sync** ⏳
+- `[ ]` **Phase 3: Background Jobs & Analytics Sync**
   - Vercel Cron 30-minute atomic `GETSET` analytics flush
   - 24-hour lazy & bulk expiration purge (84-day link lifespan)
-- `[ ]` **Phase 4: Polish & Production Deployment** ⏳
+- `[ ]` **Phase 4: Polish & Production Deployment**
 
 ---
 

@@ -3,8 +3,26 @@
 import { useState } from "react";
 import { Link2, Copy, Check } from "lucide-react";
 
+const BeanEaterLoader = () => (
+  <div className="loader-container">
+    <div className="loader-inner">
+      <div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+);
+
 export function ShortenWidget() {
   const [longUrl, setLongUrl] = useState("");
+  const [lastLongUrl, setLastLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,6 +58,8 @@ export function ShortenWidget() {
       const data = await res.json();
       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ql.link';
       setShortUrl(`${origin}/${data.short_code}`);
+      setLastLongUrl(longUrl);
+      setLongUrl("");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "An error occurred while shortening the URL.");
@@ -85,7 +105,7 @@ export function ShortenWidget() {
           className="btn-primary" 
           disabled={isLoading || !longUrl}
         >
-          {isLoading ? <span className="animate-spin inline-block">C</span> : "Cut"}
+          {isLoading ? <BeanEaterLoader /> : "Cut"}
         </button>
       </form>
 
@@ -95,7 +115,7 @@ export function ShortenWidget() {
         <div className="result-row">
           <div className="result-info">
             <span className="result-link">{shortUrl}</span>
-            <span className="result-sub">{longUrl}</span>
+            <span className="result-sub">{lastLongUrl}</span>
           </div>
           <button 
             type="button" 
