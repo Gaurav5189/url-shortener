@@ -4,8 +4,10 @@ Uses sqlalchemy-libsql (v0.2.0) which relies on the native Rust
 libsql-experimental driver.
 """
 
+import logging as _logging
 from collections.abc import Generator
 
+from sqlalchemy.pool import NullPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from url_shortener_api.core.config import settings
@@ -39,10 +41,16 @@ engine = create_engine(
     _db_url,
     connect_args=_connect_args,
     echo=False,
+    # NullPool: disable connection pooling entirely.
+    # Turso uses the Hrana WebSocket wire protocol — each "connection" is a
+    # remote stream that Turso silently closes after idle periods. SQLAlchemy's
+    # default pool reuses these stale streams, causing:
+    #   ValueError: Hrana: stream not found: <stream-id>
+    # NullPool creates a fresh stream per request and closes it immediately,
+    # so stale streams are structurally impossible.
+    poolclass=NullPool,
 )
 
-
-import logging as _logging
 
 _logger = _logging.getLogger(__name__)
 
