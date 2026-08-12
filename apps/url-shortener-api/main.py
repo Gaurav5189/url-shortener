@@ -7,9 +7,15 @@ Lifespan events handle:
 """
 
 import logging
+import sys
 from contextlib import asynccontextmanager
-
+from pathlib import Path
 from urllib.parse import urlsplit
+
+# Ensure src/ directory is in sys.path for url_shortener_api module resolution
+_src_dir = str(Path(__file__).resolve().parent / "src")
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from url_shortener_api.api.routes import router, set_redis_client
 from url_shortener_api.core.config import settings
 from url_shortener_api.db.session import init_db
+
 
 logger = logging.getLogger(__name__)
 
