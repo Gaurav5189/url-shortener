@@ -58,6 +58,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
