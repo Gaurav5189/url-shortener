@@ -1,36 +1,19 @@
-import { Check, BookOpen, ExternalLink } from "lucide-react";
-import { ThemeToggle } from "../components/ThemeToggle";
-import { LogoIcon } from "../components/LogoIcon";
+import { Check, BookOpen } from "lucide-react";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 import { ShortenWidget } from "../components/ShortenWidget";
 
 export default function Home() {
   return (
-    <div className="w-full flex-col min-h-screen" style={{ display: 'flex' }}>
+    <div className="w-full flex-col min-h-screen" style={{ display: "flex" }}>
       {/* Header */}
-      <header className="header container">
-        <div className="flex items-center gap-2">
-          <LogoIcon className="text-accent" width={32} height={32} />
-          <span style={{ fontSize: '18px', fontWeight: 700 }}>LinkCut</span>
-        </div>
-        <div className="header-right">
-          <ThemeToggle />
-          <a
-            href="https://github.com/Gaurav5189/url-shortener"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="repo-link"
-          >
-            <ExternalLink size={20} />
-            <span>Repo &rarr;</span>
-          </a>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
-      <main className="flex-col items-center w-full" style={{ display: 'flex', flex: 1 }}>
-        <div className="container flex-col items-center" style={{ display: 'flex', width: '100%' }}>
+      <main className="flex-col items-center w-full" style={{ display: "flex", flex: 1 }}>
+        <div className="container flex-col items-center" style={{ display: "flex", width: "100%" }}>
           {/* Hero */}
-          <div className="text-center" style={{ marginTop: '80px', width: '100%' }}>
+          <div className="text-center" style={{ marginTop: "80px", width: "100%" }}>
             <h1 className="h1-title">
               URL <span className="h1-pill">shortener</span>
             </h1>
@@ -74,34 +57,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-grid">
-          <div className="footer-logo-col">
-            <div className="footer-logo">
-              <LogoIcon className="text-accent" width={24} height={24} />
-              <span>LinkCut</span>
-            </div>
-            <p className="footer-copy">© {new Date().getFullYear()} LinkCut Inc. All rights reserved.</p>
-            <p className="footer-copy" style={{ marginTop: '4px' }}>Built with Next.js</p>
-          </div>
-
-          <div>
-            <h2 className="footer-heading">Developers</h2>
-            <div className="footer-links">
-              <a href="/dev-docs" className="footer-link">Docs</a>
-              <a href="https://github.com/Gaurav5189/url-shortener" className="footer-link">Repo</a>
-            </div>
-          </div>
-
-          <div>
-            <h2 className="footer-heading">Legal</h2>
-            <div className="footer-links">
-              <a href="/privacy" className="footer-link">Privacy Policy</a>
-              <a href="/terms" className="footer-link">Terms of Service</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

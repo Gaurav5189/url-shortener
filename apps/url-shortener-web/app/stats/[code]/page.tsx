@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ExternalLink } from "lucide-react";
-import { ThemeToggle } from "../../../components/ThemeToggle";
-import { LogoIcon } from "../../../components/LogoIcon";
+import { Header } from "../../../components/Header";
+import { Footer } from "../../../components/Footer";
 import { StatsWidget } from "../../../components/StatsWidget";
 
 interface Props {
@@ -22,25 +20,8 @@ export default async function StatsPage({ params }: Props) {
 
   return (
     <div className="w-full flex-col min-h-screen" style={{ display: "flex" }}>
-      {/* Header */}
-      <header className="header container">
-        <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-          <LogoIcon className="text-accent" width={32} height={32} />
-          <span style={{ fontSize: "18px", fontWeight: 700 }}>LinkCut</span>
-        </Link>
-        <div className="header-right">
-          <ThemeToggle />
-          <a
-            href="https://github.com/Gaurav5189/url-shortener"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="repo-link"
-          >
-            <ExternalLink size={20} />
-            <span>Repo &rarr;</span>
-          </a>
-        </div>
-      </header>
+      {/* Shared Header */}
+      <Header />
 
       {/* Main Content */}
       <main className="flex-col items-center w-full" style={{ display: "flex", flex: 1 }}>
@@ -73,55 +54,8 @@ export default async function StatsPage({ params }: Props) {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-grid">
-          <div className="footer-logo-col">
-            <div className="footer-logo">
-              <LogoIcon className="text-accent" width={24} height={24} />
-              <span>LinkCut</span>
-            </div>
-            <p className="footer-copy">
-              © {new Date().getFullYear()} LinkCut Inc. All rights reserved.
-            </p>
-            <p className="footer-copy" style={{ marginTop: "4px" }}>
-              Built with Next.js & Upstash Redis
-            </p>
-          </div>
-
-          <div>
-            <h2 className="footer-heading">Developers</h2>
-            <div className="footer-links">
-              <Link href="/" className="footer-link">
-                Home
-              </Link>
-              <a
-                href="https://github.com/Gaurav5189/url-shortener"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-link"
-              >
-                GitHub Repo
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <h2 className="footer-heading">Features</h2>
-            <div className="footer-links">
-              <span className="footer-link" style={{ cursor: "default" }}>
-                Sub-20ms Redirects
-              </span>
-              <span className="footer-link" style={{ cursor: "default" }}>
-                Real-Time Analytics
-              </span>
-              <span className="footer-link" style={{ cursor: "default" }}>
-                84-Day Lifespan
-              </span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Shared Footer */}
+      <Footer />
     </div>
   );
 }
