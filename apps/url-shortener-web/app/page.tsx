@@ -35,7 +35,7 @@ export default function Home() {
               URL <span className="h1-pill">shortener</span>
             </h1>
             <p className="subhead">
-              Single-page, open-source URL shortener. No dashboard, no auth, no multi-page marketing site. Just paste, cut, and share.
+              Welcome to LinkCut - single-page, open-source URL shortener. No dashboard, no auth, no multi-page marketing site. Just paste, cut, and share.
             </p>
           </div>
 
@@ -82,13 +82,13 @@ export default function Home() {
               <span>LinkCut</span>
             </div>
             <p className="footer-copy">© {new Date().getFullYear()} LinkCut Inc. All rights reserved.</p>
-            <p className="footer-copy" style={{ marginTop: '4px' }}>made with Next.js</p>
+            <p className="footer-copy" style={{ marginTop: '4px' }}>Built with Next.js</p>
           </div>
 
           <div>
             <h2 className="footer-heading">Developers</h2>
             <div className="footer-links">
-              <a href="/docs" className="footer-link">Docs</a>
+              <a href="/dev-docs" className="footer-link">Docs</a>
               <a href="https://github.com/Gaurav5189/url-shortener" className="footer-link">Repo</a>
             </div>
           </div>
