@@ -24,7 +24,8 @@
 
 ## Phase 3: Background Jobs & Analytics Sync (Vercel Cron) — [STATUS: COMPLETED ✅]
 * `[x]` Configure `vercel.json` with two cron schedules (30-minute flush, 24-hour purge).
-* `[x]` Create `POST /api/cron/flush-analytics` and `POST /api/cron/sync-analytics` endpoint in FastAPI:
+* `[x]` Create `POST /api/cron/flush-analytics` endpoint in FastAPI:
+
   - Iterate over `analytics:clicks:*` keys in Redis.
   - Execute atomic Lua script to retrieve and delete click delta safely.
   - Batch update Turso DB (`UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`).

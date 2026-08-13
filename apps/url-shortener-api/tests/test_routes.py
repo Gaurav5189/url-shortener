@@ -13,8 +13,10 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from url_shortener_api.api import routes as routes_module
+from url_shortener_api.core.config import settings
 from url_shortener_api.db import session as session_module
 from url_shortener_api.db.models import URLMapping
+
 
 # ── Test fixtures ───────────────────────────────────────────────────
 
@@ -255,18 +257,15 @@ class TestRedirectEndpoint:
 
 
 class TestCronAnalyticsSync:
-    """Tests for POST /api/cron/sync-analytics and POST /api/cron/flush-analytics."""
+    """Tests for POST /api/cron/flush-analytics."""
 
-    def test_sync_unauthorized(self, client: TestClient):
-        resp = client.post("/api/cron/sync-analytics")
+    def test_flush_unauthorized(self, client: TestClient):
+        resp = client.post("/api/cron/flush-analytics")
         assert resp.status_code == 401
         assert "Unauthorized" in resp.json()["detail"]
 
-    def test_flush_alias_unauthorized(self, client: TestClient):
-        resp = client.post("/api/cron/flush-analytics")
-        assert resp.status_code == 401
+    def test_flush_authorized_success(
 
-    def test_sync_authorized_success(
         self, client: TestClient, session: Session, mock_redis: MagicMock
     ):
         mapping = URLMapping(
@@ -281,7 +280,7 @@ class TestCronAnalyticsSync:
         mock_redis.keys.return_value = ["analytics:clicks:002bI"]
         mock_redis.eval.return_value = "5"
 
-        headers = {"Authorization": "Bearer super-secret-default-change-me"}
+        headers = {"Authorization": f"Bearer {settings.CRON_SECRET}"}
         resp = client.post("/api/cron/flush-analytics", headers=headers)
         assert resp.status_code == 200
         assert resp.json()["status"] == "success"
@@ -319,8 +318,9 @@ class TestCronPurgeExpired:
         session.add(active_mapping)
         session.commit()
 
-        headers = {"Authorization": "Bearer super-secret-default-change-me"}
+        headers = {"Authorization": f"Bearer {settings.CRON_SECRET}"}
         resp = client.post("/api/cron/purge-expired", headers=headers)
+
         assert resp.status_code == 200
         assert resp.json()["status"] == "success"
         assert resp.json()["purged_records"] == 1

@@ -18,9 +18,20 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/icon.svg') ||
-    pathname.startsWith('/api/')
+    pathname.startsWith('/api/') ||
+    pathname === '/stats' ||
+    pathname.startsWith('/stats/')
   ) {
     return NextResponse.next();
+  }
+
+  // Handle '+' suffix (e.g. /0000D+ -> /stats/0000D)
+  if (pathname.endsWith('+')) {
+    const rawCode = pathname.slice(1, -1);
+    if (rawCode.length > 0) {
+      const statsUrl = new URL(`/stats/${encodeURIComponent(rawCode)}`, request.url);
+      return NextResponse.redirect(statsUrl, 307);
+    }
   }
 
   const shortCode = pathname.substring(1);
@@ -40,7 +51,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
 
   // Proxy to FastAPI backend on Cache MISS or error
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8000';
-  
+
   // Build URL from trusted API origin, then set pathname.
   // NEVER use `new URL(\`/${shortCode}\`, apiUrl)` — that allows SSRF via
   // path-relative resolution if shortCode starts with '/attacker.example'.
@@ -52,6 +63,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|stats).*)',
   ],
 };
+

@@ -115,7 +115,7 @@ def shorten_url(
     return ShortenResponse(short_code=short_code, short_url=short_url)
 
 
-# ── POST /api/cron/sync-analytics (and /api/cron/flush-analytics) ───
+# ── POST /api/cron/flush-analytics ──────────────────────────────────
 
 
 def verify_cron_secret(authorization: str = Header(None)):
@@ -124,13 +124,13 @@ def verify_cron_secret(authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized cron invocation")
 
 
-@router.post("/api/cron/sync-analytics")
 @router.post("/api/cron/flush-analytics")
 def trigger_analytics_sync(
     dependencies=Depends(verify_cron_secret),
     session: Session = Depends(get_session)
 ):
     """Triggered by Vercel Cron (30m) to flush Redis clicks to SQLite."""
+
     try:
         return sync_analytics_to_db(_redis, session)
     except Exception as e:
@@ -175,13 +175,22 @@ def get_url_stats(short_code: str, session: Session = Depends(get_session)):
         except Exception as e:
             logger.warning("Failed to fetch pending clicks from redis: %s", str(e))
     
+    created_at = mapping.created_at
+    if created_at and created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+
+    expires_at = mapping.expires_at
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
     return {
         "short_code": mapping.short_code,
         "original_url": mapping.long_url,
         "total_clicks": mapping.clicks + pending_clicks_int,
-        "created_at": mapping.created_at,
-        "expires_at": mapping.expires_at
+        "created_at": created_at.isoformat() if created_at else None,
+        "expires_at": expires_at.isoformat() if expires_at else None,
     }
+
 
 
 # ── GET /{short_code} ──────────────────────────────────────────────
