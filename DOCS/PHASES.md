@@ -22,16 +22,18 @@
 
 ---
 
-## Phase 3: Background Jobs & Analytics Sync (Vercel Cron) — [STATUS: PENDING ⏳]
-* `[ ]` Configure `vercel.json` with two cron schedules (30-minute flush, 24-hour purge).
-* `[ ]` Create `POST /api/cron/flush-analytics` endpoint in FastAPI:
+## Phase 3: Background Jobs & Analytics Sync (Vercel Cron) — [STATUS: COMPLETED ✅]
+* `[x]` Configure `vercel.json` with two cron schedules (30-minute flush, 24-hour purge).
+* `[x]` Create `POST /api/cron/flush-analytics` and `POST /api/cron/sync-analytics` endpoint in FastAPI:
   - Iterate over `analytics:clicks:*` keys in Redis.
-  - Execute atomic `GETSET analytics:clicks:{short_code} 0` to retrieve click delta safely.
+  - Execute atomic Lua script to retrieve and delete click delta safely.
   - Batch update Turso DB (`UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`).
-* `[ ]` Create `POST /api/cron/purge-expired` endpoint in FastAPI:
-  - Bulk SQL `DELETE FROM url_mapping WHERE expires_at <= UTC_NOW`.
-  - Evict corresponding Redis keys.
-* `[ ]` Secure both cron endpoints with Bearer token authentication (`CRON_SECRET`).
+* `[x]` Create `POST /api/cron/purge-expired` endpoint in FastAPI:
+  - Bulk SQL query and delete expired records (`expires_at <= UTC_NOW`).
+  - Evict corresponding Redis keys (`url:{short_code}`, `analytics:clicks:{short_code}`).
+* `[x]` Create `GET /api/urls/{short_code}/stats` public endpoint to fetch total clicks (saved DB clicks + pending Redis delta).
+* `[x]` Secure both cron endpoints with Bearer token authentication (`CRON_SECRET`) and Next.js Edge proxy routes.
+* `[x]` Complete automated test suite (38/38 unit & integration tests passing).
 
 ---
 

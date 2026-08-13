@@ -8,15 +8,18 @@ Endpoints:
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, HttpUrl
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from url_shortener_api.core import base62
 from url_shortener_api.core.config import settings
+from url_shortener_api.core.sync import purge_expired_urls, sync_analytics_to_db
 from url_shortener_api.db.models import URLMapping
 from url_shortener_api.db.session import get_session
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -112,8 +115,76 @@ def shorten_url(
     return ShortenResponse(short_code=short_code, short_url=short_url)
 
 
-# ── GET /{short_code} ──────────────────────────────────────────────
+# ── POST /api/cron/sync-analytics (and /api/cron/flush-analytics) ───
 
+
+def verify_cron_secret(authorization: str = Header(None)):
+    expected_header = f"Bearer {settings.CRON_SECRET}"
+    if authorization != expected_header:
+        raise HTTPException(status_code=401, detail="Unauthorized cron invocation")
+
+
+@router.post("/api/cron/sync-analytics")
+@router.post("/api/cron/flush-analytics")
+def trigger_analytics_sync(
+    dependencies=Depends(verify_cron_secret),
+    session: Session = Depends(get_session)
+):
+    """Triggered by Vercel Cron (30m) to flush Redis clicks to SQLite."""
+    try:
+        return sync_analytics_to_db(_redis, session)
+    except Exception as e:
+        logger.error("Analytics sync failed: %s", str(e))
+        raise HTTPException(status_code=500, detail="Sync failed")
+
+
+# ── POST /api/cron/purge-expired ────────────────────────────────────
+
+
+@router.post("/api/cron/purge-expired")
+def trigger_purge_expired(
+    dependencies=Depends(verify_cron_secret),
+    session: Session = Depends(get_session)
+):
+    """Triggered by Vercel Cron (24h) to delete expired links and evict Redis cache."""
+    try:
+        return purge_expired_urls(_redis, session)
+    except Exception as e:
+        logger.error("Purge expired URLs failed: %s", str(e))
+        raise HTTPException(status_code=500, detail="Purge failed")
+
+
+
+# ── GET /api/urls/{short_code}/stats ────────────────────────────────
+
+
+@router.get("/api/urls/{short_code}/stats")
+def get_url_stats(short_code: str, session: Session = Depends(get_session)):
+    """Fetch URL statistics, combining saved clicks + pending Redis clicks."""
+    statement = select(URLMapping).where(URLMapping.short_code == short_code)
+    mapping = session.exec(statement).first()
+    
+    if not mapping:
+        raise HTTPException(status_code=404, detail="Short code not found")
+        
+    pending_clicks_int = 0
+    if _redis is not None:
+        try:
+            pending_clicks = _redis.get(f"analytics:clicks:{short_code}")
+            pending_clicks_int = int(pending_clicks) if pending_clicks else 0
+        except Exception as e:
+            logger.warning("Failed to fetch pending clicks from redis: %s", str(e))
+    
+    return {
+        "short_code": mapping.short_code,
+        "original_url": mapping.long_url,
+        "total_clicks": mapping.clicks + pending_clicks_int,
+        "created_at": mapping.created_at,
+        "expires_at": mapping.expires_at
+    }
+
+
+# ── GET /{short_code} ──────────────────────────────────────────────
 
 @router.get("/{short_code}")
 def redirect_short_url(

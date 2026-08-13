@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/flush-analytics",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/purge-expired",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
