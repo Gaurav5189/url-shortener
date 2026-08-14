@@ -11,6 +11,7 @@ import {
   Check,
   RotateCw,
   ArrowLeft,
+  ArrowUpRight,
   ShieldCheck,
   AlertCircle,
   Link2,
@@ -151,210 +152,195 @@ export function StatsWidget({ code }: { code: string }) {
 
 
   return (
-    <div className="card" style={{ width: "100%", maxWidth: "900px" }}>
-      {/* Top Header Row */}
-      <div className="stats-top-row">
-        <div className="status-row" style={{ marginBottom: 0 }}>
-          <div
-            className="status-dot"
-            style={{
-              backgroundColor: isExpired ? "var(--text-tertiary)" : "var(--success)",
-            }}
-          />
-          <span>{isExpired ? "LINK EXPIRED" : "LIVE ANALYTICS"}</span>
+    <div style={{ width: "100%", maxWidth: "1000px" }}>
+      <div className="stats-outer-card">
+        {/* Top Header Row */}
+        <div className="stats-top-row">
+          <div className="status-row" style={{ marginBottom: 0 }}>
+            <div
+              className="status-dot"
+              style={{
+                backgroundColor: isExpired ? "var(--text-tertiary)" : "var(--success)",
+              }}
+            />
+            <span>{isExpired ? "LINK EXPIRED" : "ANALYTICS"}</span>
+          </div>
+
+          <button
+            onClick={() => fetchStats(true)}
+            disabled={isLoading || isRefreshing}
+            className="btn-ghost with-label"
+            title="Refresh analytics"
+            aria-label="Refresh analytics"
+          >
+            <RotateCw size={16} className={isRefreshing ? "spin-animation" : ""} />
+            <span>Refresh</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => fetchStats(true)}
-          disabled={isLoading || isRefreshing}
-          className="stats-refresh-btn"
-          title="Refresh analytics"
-          aria-label="Refresh analytics"
-        >
-          <RotateCw size={16} className={isRefreshing ? "spin-animation" : ""} />
-          <span className="stats-refresh-text">Refresh</span>
-        </button>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="stats-loading-box">
+            <div className="stats-skeleton-hero" />
+            <div className="stats-skeleton-row" />
+            <div className="stats-skeleton-grid">
+              <div className="stats-skeleton-card" />
+              <div className="stats-skeleton-card" />
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
+          <div className="stats-error-box">
+            <AlertCircle size={40} className="stats-error-icon" />
+            <h2 className="stats-error-title">Link Not Found</h2>
+            <p className="stats-error-desc">{error}</p>
+            <div style={{ marginTop: "24px" }}>
+              <Link href="/" className="read-docs-btn" style={{ margin: "0 auto" }}>
+                <ArrowLeft size={18} />
+                <span>Back to Home</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Loaded Content */}
+        {!isLoading && !error && stats && (
+          <div className="stats-content">
+            <div className="stats-grid-row">
+              {/* Hero Metric: Total Clicks */}
+              <div className="stats-metric-hero">
+                <div className="stats-metric-label-group">
+                  <span className="stats-pill-badge">
+                    <ArrowUpRight size={14} />
+                    <span>TOTAL CLICKS</span>
+                  </span>
+                </div>
+                <div className="stats-metric-number">
+                  {stats.total_clicks.toLocaleString()}
+                </div>
+              </div>
+
+              {/* Links Section */}
+              <div className="stats-links-group">
+                {/* Short URL Box */}
+                <div className="stats-link-card">
+                  <div className="stats-link-header">
+                    <span className="stats-link-label">Shortened URL</span>
+                    <span className="stats-pill-badge mono-slug">{stats.short_code}</span>
+                  </div>
+                  <div className="stats-link-body">
+                    <a
+                      href={fullShortUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="stats-short-link"
+                    >
+                      {fullShortUrl}
+                    </a>
+                    <div className="stats-actions">
+                      <button
+                        onClick={() => copyToClipboard(fullShortUrl, true)}
+                        className="stats-icon-btn"
+                        title="Copy short link"
+                        aria-label="Copy short link"
+                      >
+                        {copiedShort ? <Check size={18} /> : <Copy size={18} />}
+                      </button>
+                      <a
+                        href={fullShortUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="stats-icon-btn"
+                        title="Visit short link"
+                        aria-label="Visit short link"
+                      >
+                        <ExternalLink size={18} />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Original Target URL Box */}
+                <div className="stats-link-card">
+                  <div className="stats-link-header">
+                    <span className="stats-link-label">Original Destination</span>
+                  </div>
+                  <div className="stats-link-body">
+                    <a
+                      href={stats.original_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="stats-original-link"
+                    >
+                      <Link2 size={16} className="stats-original-icon" />
+                      <span className="stats-original-text">{stats.original_url}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Metadata Grid */}
+            <div className="stats-meta-grid">
+              {/* Created At */}
+              <div className="stats-meta-card">
+                <div className="stats-meta-icon-box">
+                  <Calendar size={20} className="stats-meta-icon" />
+                </div>
+                <div className="stats-meta-info">
+                  <div className="stats-meta-title">Created</div>
+                  <div className="stats-meta-value">{formatDate(stats.created_at)}</div>
+                </div>
+              </div>
+
+              {/* Expiration */}
+              <div className="stats-meta-card">
+                <div className="stats-meta-icon-box">
+                  <Clock size={20} className="stats-meta-icon" />
+                </div>
+                <div className="stats-meta-info">
+                  <div className="stats-meta-title">Expiration</div>
+                  <div className="stats-meta-value">
+                    {isExpired ? (
+                      <span style={{ color: "var(--text-tertiary)" }}>Expired</span>
+                    ) : (
+                      <>
+                        <span>{getRelativeExpiry(stats.expires_at)}</span>
+                        <span className="stats-meta-subvalue">
+                          ({formatDate(stats.expires_at)})
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Retention Policy */}
+              <div className="stats-meta-card">
+                <div className="stats-meta-icon-box">
+                  <ShieldCheck size={20} className="stats-meta-icon" />
+                </div>
+                <div className="stats-meta-info">
+                  <div className="stats-meta-title">Lifespan Policy</div>
+                  <div className="stats-meta-value">84-Day Retention</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Action Footer */}
+          </div>
+        )}
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="stats-loading-box">
-          <div className="stats-skeleton-hero" />
-          <div className="stats-skeleton-row" />
-          <div className="stats-skeleton-grid">
-            <div className="stats-skeleton-card" />
-            <div className="stats-skeleton-card" />
-          </div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {!isLoading && error && (
-        <div className="stats-error-box">
-          <AlertCircle size={40} className="stats-error-icon" />
-          <h2 className="stats-error-title">Link Not Found</h2>
-          <p className="stats-error-desc">{error}</p>
-          <div style={{ marginTop: "24px" }}>
-            <Link href="/" className="read-docs-btn" style={{ margin: "0 auto" }}>
-              <ArrowLeft size={18} />
-              <span>Back to Home</span>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Loaded Content */}
-      {!isLoading && !error && stats && (
-        <div className="stats-content">
-          {/* Hero Metric: Total Clicks */}
-          <div className="stats-metric-hero">
-            <div className="stats-metric-label-group">
-              <span className="stats-metric-badge">
-                <MousePointerClick size={14} />
-                <span>Total Clicks</span>
-              </span>
-            </div>
-            <div className="stats-metric-number">
-              {stats.total_clicks.toLocaleString()}
-            </div>
-            <div className="stats-metric-caption">
-              Includes instant edge redirects and real-time buffer
-            </div>
-          </div>
-
-          {/* Links Section */}
-          <div className="stats-links-group">
-            {/* Short URL Box */}
-            <div className="stats-link-card">
-              <div className="stats-link-header">
-                <span className="stats-link-label">Shortened URL</span>
-                <span className="stats-code-badge">{stats.short_code}</span>
-              </div>
-              <div className="stats-link-body">
-                <a
-                  href={fullShortUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="stats-short-link"
-                >
-                  {fullShortUrl}
-                </a>
-                <div className="stats-actions">
-                  <button
-                    onClick={() => copyToClipboard(fullShortUrl, true)}
-                    className="stats-action-btn"
-                    title="Copy short link"
-                    aria-label="Copy short link"
-                  >
-                    {copiedShort ? <Check size={18} /> : <Copy size={18} />}
-                  </button>
-                  <a
-                    href={fullShortUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="stats-action-btn"
-                    title="Visit short link"
-                    aria-label="Visit short link"
-                  >
-                    <ExternalLink size={18} />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Original Target URL Box */}
-            <div className="stats-link-card">
-              <div className="stats-link-header">
-                <span className="stats-link-label">Original Destination</span>
-              </div>
-              <div className="stats-link-body">
-                <a
-                  href={stats.original_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="stats-original-link"
-                >
-                  <Link2 size={16} className="stats-original-icon" />
-                  <span className="stats-original-text">{stats.original_url}</span>
-                </a>
-                <div className="stats-actions">
-                  <button
-                    onClick={() => copyToClipboard(stats.original_url, false)}
-                    className="stats-action-btn"
-                    title="Copy destination URL"
-                    aria-label="Copy destination URL"
-                  >
-                    {copiedOriginal ? <Check size={18} /> : <Copy size={18} />}
-                  </button>
-                  <a
-                    href={stats.original_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="stats-action-btn"
-                    title="Open destination URL"
-                    aria-label="Open destination URL"
-                  >
-                    <ExternalLink size={18} />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Metadata Grid */}
-          <div className="stats-meta-grid">
-            {/* Created At */}
-            <div className="stats-meta-card">
-              <div className="stats-meta-icon-box">
-                <Calendar size={20} className="stats-meta-icon" />
-              </div>
-              <div className="stats-meta-info">
-                <div className="stats-meta-title">Created</div>
-                <div className="stats-meta-value">{formatDate(stats.created_at)}</div>
-              </div>
-            </div>
-
-            {/* Expiration */}
-            <div className="stats-meta-card">
-              <div className="stats-meta-icon-box">
-                <Clock size={20} className="stats-meta-icon" />
-              </div>
-              <div className="stats-meta-info">
-                <div className="stats-meta-title">Expiration</div>
-                <div className="stats-meta-value">
-                  {isExpired ? (
-                    <span style={{ color: "var(--text-tertiary)" }}>Expired</span>
-                  ) : (
-                    <>
-                      <span>{getRelativeExpiry(stats.expires_at)}</span>
-                      <span className="stats-meta-subvalue">
-                        ({formatDate(stats.expires_at)})
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Retention Policy */}
-            <div className="stats-meta-card">
-              <div className="stats-meta-icon-box">
-                <ShieldCheck size={20} className="stats-meta-icon" />
-              </div>
-              <div className="stats-meta-info">
-                <div className="stats-meta-title">Lifespan Policy</div>
-                <div className="stats-meta-value">84-Day Retention</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Action Footer */}
-          <div className="stats-footer-actions">
-            <Link href="/" className="read-docs-btn" style={{ margin: "0 auto" }}>
-              <ArrowLeft size={18} />
-              <span>Shorten Another Link</span>
-            </Link>
-          </div>
+      {/* Shorten Another Link (Outside outer card) */}
+      {!isLoading && !error && (
+        <div className="stats-footer-actions">
+          <Link href="/" className="btn-ghost with-label" style={{ borderRadius: "999px" }}>
+            <ArrowLeft size={18} />
+            <span>Shorten Another Link</span>
+          </Link>
         </div>
       )}
     </div>
