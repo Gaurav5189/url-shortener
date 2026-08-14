@@ -12,7 +12,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cron/purge-expired`;
+  const apiBase = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const backendUrl = `${apiBase}/api/cron/purge-expired`;
 
   try {
     const response = await fetch(backendUrl, {

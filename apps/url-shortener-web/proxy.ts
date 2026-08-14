@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest, NextFetchEvent } from 'next/server';
 import { Redis } from '@upstash/redis';
 
-// Initialize Upstash Redis client.
+// Initialize Upstash Redis client (only if credentials are provided)
 let redis: Redis | null = null;
-try {
-  redis = Redis.fromEnv();
-} catch (error) {
-  console.warn("Failed to initialize Upstash Redis from env vars.");
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  try {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  } catch (error) {
+    console.warn("Failed to initialize Upstash Redis from env vars:", error);
+    redis = null;
+  }
 }
 
 export default async function middleware(request: NextRequest, event: NextFetchEvent) {
@@ -50,7 +56,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   }
 
   // Proxy to FastAPI backend on Cache MISS or error
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8000';
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   // Build URL from trusted API origin, then set pathname.
   // NEVER use `new URL(\`/${shortCode}\`, apiUrl)` — that allows SSRF via
