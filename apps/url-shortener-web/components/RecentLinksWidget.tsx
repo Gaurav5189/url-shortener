@@ -12,11 +12,23 @@ export interface RecentLink {
 
 const STORAGE_KEY = "url_shortener_recent_links";
 
+function isRecentLink(value: unknown): value is RecentLink {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as RecentLink).shortCode === "string" &&
+    typeof (value as RecentLink).shortUrl === "string" &&
+    typeof (value as RecentLink).longUrl === "string" &&
+    typeof (value as RecentLink).createdAt === "string"
+  );
+}
+
 export const getRecentLinks = (): RecentLink[] => {
   if (typeof window === "undefined") return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const parsed: unknown = data ? JSON.parse(data) : [];
+    return Array.isArray(parsed) ? parsed.filter(isRecentLink) : [];
   } catch {
     return [];
   }
@@ -24,17 +36,21 @@ export const getRecentLinks = (): RecentLink[] => {
 
 export const addRecentLink = (link: RecentLink) => {
   if (typeof window === "undefined") return;
-  const existing = getRecentLinks();
-  
-  // Remove duplicates if the same code exists
-  const filtered = existing.filter((item) => item.shortCode !== link.shortCode);
-  
-  // Prepend new link and cap at 5 items
-  const updated = [link, ...filtered].slice(0, 5);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  
-  // Dispatch custom event to notify listeners
-  window.dispatchEvent(new Event('recentLinksUpdated'));
+  try {
+    const existing = getRecentLinks();
+
+    // Remove duplicates if the same code exists
+    const filtered = existing.filter((item) => item.shortCode !== link.shortCode);
+
+    // Prepend new link and cap at 5 items
+    const updated = [link, ...filtered].slice(0, 5);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // Dispatch custom event to notify listeners only after successful write
+    window.dispatchEvent(new Event('recentLinksUpdated'));
+  } catch {
+    // Recent links must not affect the URL shortening operation.
+  }
 };
 
 export function RecentLinksWidget() {

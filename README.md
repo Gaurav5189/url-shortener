@@ -17,10 +17,10 @@ A high-performance, login-less URL shortening service built for sub-20ms redirec
 - `[x]` **Phase 2: Next.js Frontend & Edge Middleware**
   - Next.js 14 App Router landing page
   - Edge Middleware for instant 302 redirects from Redis (~15ms)
-- `[ ]` **Phase 3: Background Jobs & Analytics Sync**
-  - Vercel Cron 30-minute atomic `GETSET` analytics flush
+- `[x]` **Phase 3: Background Jobs & Analytics Sync**
+  - Vercel Cron 30-minute analytics flush (atomic Lua retrieve-and-delete from Redis → Turso DB)
   - 24-hour lazy & bulk expiration purge (84-day link lifespan)
-- `[ ]` **Phase 4: Polish & Production Deployment**
+- `[x]` **Phase 4: Polish & Production Deployment**
 
 ---
 
@@ -32,7 +32,7 @@ The system decouples read redirections from database writes across three operati
 
 - **Fast Path (Edge Middleware)**: Checks Upstash Redis (`url:{code}`) and returns an HTTP 302 redirect directly from the edge. Sends a non-blocking `INCR` to Redis for click tracking.
 - **Slow Path (Backend Fallback)**: Decodes Base62 short code to primary key ID for $O(1)$ indexed lookup in Turso DB. Populates Redis cache with a 12-hour TTL.
-- **Background Path (Cron Jobs)**: Atomically flushes Redis click counters (`GETSET`) to Turso DB every 30 minutes.
+- **Background Path (Cron Jobs)**: Atomically flushes Redis click counters to Turso DB every 30 minutes via a Lua script that reads and deletes each counter in a single atomic Redis operation.
 
 ---
 

@@ -26,7 +26,7 @@ A high-performance, login-less URL shortening web application (`ShortyURL`). The
 * Tracks total click counts per short code without write-amplification on the primary database.
 * **Redis Key**: `analytics:clicks:{short_code}`.
 * Increment via non-blocking `INCR` in Redis on every redirect.
-* **Batch Sync**: Asynchronous Vercel Cron job flushes Redis click counts to Turso DB every 30 minutes using atomic `GETSET analytics:clicks:{short_code} 0`.
+* **Batch Sync**: Asynchronous Vercel Cron job flushes Redis click counts to Turso DB every 30 minutes using an atomic Lua script that reads and deletes each `analytics:clicks:{short_code}` counter in a single Redis operation.
 
 ### 3.4 Data Lifecycle & Expiration
 * **Link Lifetime**: 84 days (`expires_at = UTC_NOW + 84 days`).

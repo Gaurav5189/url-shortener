@@ -33,7 +33,7 @@ The system decouples high-speed read redirections from database writes using a F
 * **Analytics Sync (`POST /api/cron/flush-analytics`)**:
   - Vercel Cron triggers endpoint every 30 minutes.
   - Scans Redis keys matching `analytics:clicks:*`.
-  - Executes atomic `GETSET analytics:clicks:{short_code} 0` to read accumulated clicks and reset the counter without race conditions.
+  - Executes an atomic Lua script that reads and deletes each counter in a single Redis operation, preventing race conditions and double-counting.
   - Performs batch SQL `UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`.
 * **Expiration Purge (`POST /api/cron/purge-expired`)**:
   - Vercel Cron triggers endpoint every 24 hours.

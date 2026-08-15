@@ -39,6 +39,7 @@ stages:
         source antenv/bin/activate
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        rm -rf antenv
       workingDirectory: $(projectRoot)
       displayName: "Install requirements"
 
@@ -78,5 +79,7 @@ stages:
             displayName: 'Deploy Azure Web App : linkcut-api'
             inputs:
               azureSubscription: $(azureServiceConnectionId)
+              appType: webAppLinux
+              runtimeStack: 'PYTHON|3.12'
               appName: $(webAppName)
               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
