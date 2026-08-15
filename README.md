@@ -18,8 +18,8 @@ A high-performance, login-less URL shortening service built for sub-20ms redirec
   - Next.js 14 App Router landing page
   - Edge Middleware for instant 302 redirects from Redis (~15ms)
 - `[x]` **Phase 3: Background Jobs & Analytics Sync**
-  - Vercel Cron 30-minute analytics flush (atomic Lua retrieve-and-delete from Redis → Turso DB)
-  - 24-hour lazy & bulk expiration purge (84-day link lifespan)
+  - Upstash QStash 30-minute analytics flush (atomic Lua retrieve-and-delete from Redis → Turso DB)
+  - Vercel Cron 24-hour lazy & bulk expiration purge (84-day link lifespan)
 - `[x]` **Phase 4: Polish & Production Deployment**
 
 ---

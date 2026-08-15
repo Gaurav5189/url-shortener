@@ -31,7 +31,7 @@ The system decouples high-speed read redirections from database writes using a F
 
 ### The Background Path (Cron Jobs & Analytics Sync)
 * **Analytics Sync (`POST /api/cron/flush-analytics`)**:
-  - Vercel Cron triggers endpoint every 30 minutes.
+  - Upstash QStash schedule triggers endpoint directly on Azure API every 30 minutes.
   - Scans Redis keys matching `analytics:clicks:*`.
   - Executes an atomic Lua script that reads and deletes each counter in a single Redis operation, preventing race conditions and double-counting.
   - Performs batch SQL `UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`.
