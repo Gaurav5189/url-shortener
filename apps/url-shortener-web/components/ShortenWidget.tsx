@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Link2, Copy, Check } from "lucide-react";
+import { addRecentLink } from "./RecentLinksWidget";
 
 const BeanEaterLoader = () => (
   <div className="loader-container">
@@ -57,8 +58,18 @@ export function ShortenWidget() {
 
       const data = await res.json();
       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ql.link';
-      setShortUrl(`${origin}/${data.short_code}`);
+      const newShortUrl = `${origin}/${data.short_code}`;
+      setShortUrl(newShortUrl);
       setLastLongUrl(longUrl);
+
+      // Save to recent links
+      addRecentLink({
+        shortCode: data.short_code,
+        shortUrl: newShortUrl,
+        longUrl: longUrl,
+        createdAt: new Date().toISOString(),
+      });
+
       setLongUrl("");
     } catch (err: any) {
       console.error(err);

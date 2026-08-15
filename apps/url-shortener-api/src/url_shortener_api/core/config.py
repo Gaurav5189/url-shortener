@@ -35,6 +35,7 @@ class Settings(BaseSettings):
 
     # ── Application ─────────────────────────────────────────────────
     BASE_URL: str = "http://localhost:8000"
+    CRON_SECRET: str
 
     # ── Constants ───────────────────────────────────────────────────
     LINK_TTL_DAYS: int = 84

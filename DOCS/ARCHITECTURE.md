@@ -4,7 +4,7 @@
 
 The system decouples high-speed read redirections from database writes using a Fast Path, Slow Path, and Background Sync Path.
 
-![System Architecture Blueprint](../assets/shortyurl_v2.png)
+![System Architecture Blueprint](../assets/blueprint_v2.png)
 
 ### The Fast Path (Edge Redirection / Cache Hit)
 * **Routing**: Client -> Next.js Edge Middleware (`apps/web/middleware.ts`).
@@ -31,9 +31,9 @@ The system decouples high-speed read redirections from database writes using a F
 
 ### The Background Path (Cron Jobs & Analytics Sync)
 * **Analytics Sync (`POST /api/cron/flush-analytics`)**:
-  - Vercel Cron triggers endpoint every 30 minutes.
+  - Upstash QStash schedule triggers endpoint directly on Azure API every 30 minutes.
   - Scans Redis keys matching `analytics:clicks:*`.
-  - Executes atomic `GETSET analytics:clicks:{short_code} 0` to read accumulated clicks and reset the counter without race conditions.
+  - Executes an atomic Lua script that reads and deletes each counter in a single Redis operation, preventing race conditions and double-counting.
   - Performs batch SQL `UPDATE url_mapping SET clicks = clicks + :val WHERE short_code = :short_code`.
 * **Expiration Purge (`POST /api/cron/purge-expired`)**:
   - Vercel Cron triggers endpoint every 24 hours.

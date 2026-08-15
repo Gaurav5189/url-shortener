@@ -13,8 +13,10 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from url_shortener_api.api import routes as routes_module
+from url_shortener_api.core.config import settings
 from url_shortener_api.db import session as session_module
 from url_shortener_api.db.models import URLMapping
+
 
 # ── Test fixtures ───────────────────────────────────────────────────
 
@@ -252,3 +254,110 @@ class TestRedirectEndpoint:
         session.expire(mapping)
         refreshed = session.get(URLMapping, mapping.id)
         assert refreshed.clicks == original_clicks
+
+
+class TestCronAnalyticsSync:
+    """Tests for POST /api/cron/flush-analytics."""
+
+    def test_flush_unauthorized(self, client: TestClient):
+        resp = client.post("/api/cron/flush-analytics")
+        assert resp.status_code == 401
+        assert "Unauthorized" in resp.json()["detail"]
+
+    def test_flush_authorized_success(
+
+        self, client: TestClient, session: Session, mock_redis: MagicMock
+    ):
+        mapping = URLMapping(
+            id=10005,
+            short_code="002bI",
+            long_url="https://example.com/analytics",
+            clicks=10,
+        )
+        session.add(mapping)
+        session.commit()
+
+        mock_redis.keys.return_value = ["analytics:clicks:002bI"]
+        mock_redis.eval.return_value = "5"
+
+        headers = {"Authorization": f"Bearer {settings.CRON_SECRET}"}
+        resp = client.post("/api/cron/flush-analytics", headers=headers)
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "success"
+        assert resp.json()["synced_records"] == 1
+
+        session.expire(mapping)
+        refreshed = session.get(URLMapping, mapping.id)
+        assert refreshed.clicks == 15
+
+
+class TestCronPurgeExpired:
+    """Tests for POST /api/cron/purge-expired."""
+
+    def test_purge_unauthorized(self, client: TestClient):
+        resp = client.post("/api/cron/purge-expired")
+        assert resp.status_code == 401
+
+    def test_purge_expired_success(
+        self, client: TestClient, session: Session, mock_redis: MagicMock
+    ):
+        now = datetime.now(timezone.utc)
+        expired_mapping = URLMapping(
+            id=10006,
+            short_code="002bJ",
+            long_url="https://example.com/expired",
+            expires_at=now - timedelta(days=1),
+        )
+        active_mapping = URLMapping(
+            id=10007,
+            short_code="002bK",
+            long_url="https://example.com/active",
+            expires_at=now + timedelta(days=10),
+        )
+        session.add(expired_mapping)
+        session.add(active_mapping)
+        session.commit()
+
+        headers = {"Authorization": f"Bearer {settings.CRON_SECRET}"}
+        resp = client.post("/api/cron/purge-expired", headers=headers)
+
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "success"
+        assert resp.json()["purged_records"] == 1
+
+        # Check that expired mapping is removed, active mapping is kept
+        assert session.get(URLMapping, 10006) is None
+        assert session.get(URLMapping, 10007) is not None
+        mock_redis.delete.assert_called_once_with(
+            "url:002bJ", "analytics:clicks:002bJ"
+        )
+
+
+class TestURLStats:
+    """Tests for GET /api/urls/{short_code}/stats."""
+
+    def test_stats_not_found(self, client: TestClient):
+        resp = client.get("/api/urls/NONEX/stats")
+        assert resp.status_code == 404
+
+    def test_stats_success(
+        self, client: TestClient, session: Session, mock_redis: MagicMock
+    ):
+        mapping = URLMapping(
+            id=10008,
+            short_code="002bL",
+            long_url="https://example.com/stats-test",
+            clicks=42,
+        )
+        session.add(mapping)
+        session.commit()
+
+        mock_redis.get.return_value = "8"
+
+        resp = client.get(f"/api/urls/{mapping.short_code}/stats")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["short_code"] == "002bL"
+        assert data["original_url"] == "https://example.com/stats-test"
+        assert data["total_clicks"] == 50  # 42 + 8
+

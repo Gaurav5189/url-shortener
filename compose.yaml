@@ -1,0 +1,36 @@
+services:
+  api:
+    build:
+      context: ./apps/url-shortener-api
+      dockerfile: Containerfile
+    container_name: linkcut-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./apps/url-shortener-api/.env
+    environment:
+      - BASE_URL=http://localhost:8000
+    volumes:
+      - linkcut_data:/app/data:Z
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/url-shortener-web
+      dockerfile: Containerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    container_name: linkcut-web
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/url-shortener-web/.env
+    environment:
+      - API_URL=http://api:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  linkcut_data:
