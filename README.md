@@ -28,7 +28,7 @@ A high-performance, login-less URL shortening service built for sub-20ms redirec
 
 The system decouples read redirections from database writes across three operational paths:
 
-![System Architecture Blueprint](assets/shortyurl_v2.png)
+![System Architecture Blueprint](assets/blueprint_v2.png)
 
 - **Fast Path (Edge Middleware)**: Checks Upstash Redis (`url:{code}`) and returns an HTTP 302 redirect directly from the edge. Sends a non-blocking `INCR` to Redis for click tracking.
 - **Slow Path (Backend Fallback)**: Decodes Base62 short code to primary key ID for $O(1)$ indexed lookup in Turso DB. Populates Redis cache with a 12-hour TTL.

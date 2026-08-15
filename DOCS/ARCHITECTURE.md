@@ -4,7 +4,7 @@
 
 The system decouples high-speed read redirections from database writes using a Fast Path, Slow Path, and Background Sync Path.
 
-![System Architecture Blueprint](../assets/shortyurl_v2.png)
+![System Architecture Blueprint](../assets/blueprint_v2.png)
 
 ### The Fast Path (Edge Redirection / Cache Hit)
 * **Routing**: Client -> Next.js Edge Middleware (`apps/web/middleware.ts`).

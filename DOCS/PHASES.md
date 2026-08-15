@@ -1,6 +1,6 @@
 # PHASES.md — Project Roadmap
 
-## Phase 1: Backend Core & Database (FastAPI + Turso) — [STATUS: COMPLETED ✅]
+## Phase 1: Backend Core & Database (FastAPI + Turso) — [STATUS: COMPLETED]
 * `[x]` Set up FastAPI project (`apps/url-shortener-api`) with Pydantic configuration (`core/config.py`).
 * `[x]` Establish Turso connection via `sqlmodel` and `sqlalchemy-libsql` with Python 3.12 compatibility.
 * `[x]` Create the `URLMapping` database schema (`id`, `short_code`, `long_url`, `clicks`, `created_at`, `expires_at`).
@@ -12,7 +12,7 @@
 
 ---
 
-## Phase 2: Frontend & Edge Layer (Next.js + Upstash) — [STATUS: COMPLETED ✅]
+## Phase 2: Frontend & Edge Layer (Next.js + Upstash) — [STATUS: COMPLETED]
 * `[x]` Initialize Next.js project in `apps/url-shortener-web`.
 * `[x]` Build clean, modern UI for inputting long URLs and displaying/copying generated short links.
 * `[x]` Implement Next.js Edge Middleware (`proxy.ts`) to intercept `/{short_code}` requests.
@@ -22,7 +22,7 @@
 
 ---
 
-## Phase 3: Background Jobs & Analytics Sync (Vercel Cron) — [STATUS: COMPLETED ✅]
+## Phase 3: Background Jobs & Analytics Sync (Vercel Cron) — [STATUS: COMPLETED]
 * `[x]` Configure `vercel.json` with two cron schedules (30-minute flush, 24-hour purge).
 * `[x]` Create `POST /api/cron/flush-analytics` endpoint in FastAPI:
 
@@ -38,7 +38,7 @@
 
 ---
 
-## Phase 4: Final Polish & Deployment — [STATUS: PENDING ⏳]
+## Phase 4: Final Polish & Deployment — [STATUS: PENDING]
 * `[ ]` Implement copy-to-clipboard functionality on frontend UI with visual toast notifications.
 * `[ ]` Add input validation and loading states on frontend.
 * `[ ]` Deploy FastAPI backend (`apps/url-shortener-api`).

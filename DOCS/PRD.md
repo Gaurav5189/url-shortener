@@ -1,7 +1,7 @@
 # PRD.md (Product Requirements Document)
 
 ## 1. What to Build
-A high-performance, login-less URL shortening web application (`ShortyURL`). The system converts long URLs into unique 5-character Base62 short codes. It is heavily optimized to deliver sub-20ms redirect latency using Next.js Edge Middleware and Upstash Redis caching, while maintaining accurate link analytics and staying strictly within free-tier hosting limits via asynchronous batch processing.
+A high-performance, login-less URL shortening web application (`ShortyURL`). The system converts long URLs into unique 5-character Base62 short codes. It is heavily optimized to deliver sub-20ms redirect latency using Next.js Edge Middleware and Upstash Redis caching, while maintaining accurate link analytics and staying strictly within free to low-tier hosting limits via asynchronous batch processing.
 
 ---
 
