@@ -15,6 +15,7 @@
   --accent: #4D7C2E;
   --accent-bg: #E4EAD9;
   --accent-pill-bg: #E4EAD9;
+  --accent-pill-fg: #365D1F;
   --btn-primary-bg: #1F3A24;
   --btn-primary-fg: #FFFFFF;
   --btn-ghost-bg: #F4F5F4;
@@ -45,6 +46,7 @@
   --accent: #8FCB3E;
   --accent-bg: #1E2A12;
   --accent-pill-bg: #1E2A12;
+  --accent-pill-fg: #8FCB3E;
   --btn-primary-bg: #7FBF2A;
   --btn-primary-fg: #0A0A0A;
   --btn-ghost-bg: #1A1A1A;
@@ -759,7 +761,7 @@ input {
   align-items: center;
   gap: 6px;
   background-color: var(--accent-pill-bg);
-  color: var(--accent);
+  color: var(--accent-pill-fg);
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 13px;
@@ -964,7 +966,7 @@ input {
   height: 36px;
   border-radius: 8px;
   background-color: var(--accent-pill-bg);
-  color: var(--accent);
+  color: var(--accent-pill-fg);
   flex-shrink: 0;
 }
 
