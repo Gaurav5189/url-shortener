@@ -11,9 +11,7 @@ export function ThemeToggle() {
     const currentTheme: "light" | "dark" =
       savedTheme === "light" || savedTheme === "dark"
         ? savedTheme
-        : document.documentElement.getAttribute("data-theme") === "dark"
-          ? "dark"
-          : "light";
+        : "light";
     document.documentElement.setAttribute("data-theme", currentTheme);
     setTheme(currentTheme);
   }, []);
