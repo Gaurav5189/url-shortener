@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Ensure this runs on Vercel Edge for maximum reliability and zero cold-start delay
-export const runtime = 'edge';
-
 export async function GET(request: Request) {
   // Verify request is authorized (cron secret must match)
   const authHeader = request.headers.get('authorization');
