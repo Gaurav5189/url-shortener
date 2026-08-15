@@ -7,4 +7,5 @@ MEMORY.md
 TODO.md
 **/node_modules/
 **/.venv/
+**/.next/
 cr_review.txt
