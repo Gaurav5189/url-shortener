@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -19,10 +19,16 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "LinkCut — URL Shortener",
   description: "Fast & Reliable, single-page, open-source URL shortener.",
 };
+
 
 export default function RootLayout({
   children,

@@ -2,6 +2,8 @@ import { Check, BookOpen, Search, Copy } from "lucide-react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { ShortenWidget } from "../components/ShortenWidget";
+import { RecentLinksWidget } from "../components/RecentLinksWidget";
+import { AnalyticsSearchWidget } from "../components/AnalyticsSearchWidget";
 
 export default function Home() {
   return (
@@ -27,24 +29,7 @@ export default function Home() {
         </div>
 
         {/* Recent Links Section */}
-        <section className="section-container">
-          <h2 className="section-heading">
-            Recent <span className="section-pill">Links</span>
-          </h2>
-          <p className="section-subhead">Your most recently shortened URLs.</p>
-
-          <div className="recent-links-card">
-            <div className="recent-link-header">
-              <div className="recent-link-th">Short Link</div>
-              <div className="recent-link-th">Destination</div>
-              <div></div>
-            </div>
-
-            <div className="recent-links-empty">
-              No recent links stored.
-            </div>
-          </div>
-        </section>
+        <RecentLinksWidget />
 
         {/* Feature Strip */}
         <section className="feature-strip" style={{ marginBottom: "64px" }}>
@@ -69,27 +54,7 @@ export default function Home() {
         </section>
 
         {/* Link Analytics Search Section */}
-        <section className="section-container text-center">
-          <h2 className="section-heading">
-            Link <span className="section-pill">Analytics</span>
-          </h2>
-          <p className="section-subhead">
-            Search by link or short code to see detailed performance metrics.<br />
-            You can also add '+' sign at the end of link to open its analytics.
-          </p>
-
-          <div className="analytics-search-card">
-            <Search size={20} className="analytics-search-icon" />
-            <input
-              type="text"
-              placeholder="Enter short code or URL ..."
-              className="analytics-search-input"
-            />
-            <button className="btn-primary analytics-search-btn">
-              SEARCH
-            </button>
-          </div>
-        </section>
+        <AnalyticsSearchWidget />
 
         {/* Read Docs */}
         <div style={{ marginBottom: "64px", display: "flex", justifyContent: "center", width: "100%" }}>
