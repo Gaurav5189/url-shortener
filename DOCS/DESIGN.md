@@ -133,9 +133,9 @@ Theme toggle: present in header. Simple sun/moon icon button, placed left of the
 ## 7. Assets Needed
 
 - [x] Logo mark (chain-link icon, works in accent green on both light/dark bg)
-- [ ] Favicon + OG image derived from logo mark
-- [ ] GitHub icon (outline, monochrome, tintable)
-- [ ] Link icon (input prefix), copy icon (result row), book icon (Read Docs) — all monochrome/tintable SVGs
+- [x] Favicon + OG image derived from logo mark
+- [x] GitHub icon (outline, monochrome, tintable)
+- [x] Link icon (input prefix), copy icon (result row), book icon (Read Docs) — all monochrome/tintable SVGs
 - [ ] Checkmark icon (circular, outline style) for feature strip
 
 ---
