@@ -27,6 +27,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "LinkCut — URL Shortener",
   description: "Fast & Reliable, single-page, open-source URL shortener.",
+  verification: {
+    google: "gSG7Y5CUhuFZxtlMZfX6Vws8zZT6DRSxcJMdZyjwM_E",
+  },
 };
 
 
