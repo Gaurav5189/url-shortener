@@ -10,8 +10,20 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
   return {
-    title: `Analytics for /${code} — LinkCut`,
-    description: `Real-time click statistics and performance analytics for shortened URL /${code}.`,
+    title: `Analytics for /${code}`,
+    description: `Real-time click statistics, creation date, and performance analytics for shortened URL /${code}.`,
+    alternates: {
+      canonical: `/stats/${code}`,
+    },
+    openGraph: {
+      title: `Analytics for /${code} — LinkCut`,
+      description: `View real-time click counts and metrics for short link /${code}.`,
+      url: `/stats/${code}`,
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
   };
 }
 

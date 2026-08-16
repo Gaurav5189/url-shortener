@@ -109,7 +109,7 @@ export function StatsWidget({ code }: { code: string }) {
     }
   };
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://ql.link";
+  const origin = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "");
   const fullShortUrl = `${origin}/${code}`;
 
   const parseUtcDate = (dateStr?: string): Date | null => {
