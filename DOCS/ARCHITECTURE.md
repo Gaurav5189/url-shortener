@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-## 1. App Flow & Architecture (Based on `shortyurl_v2` Blueprint)
+## 1. App Flow & Architecture (Based on `blueprint_v2`)
 
 The system decouples high-speed read redirections from database writes using a Fast Path, Slow Path, and Background Sync Path.
 
