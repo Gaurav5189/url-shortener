@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
 export const alt = 'LinkCut — Fast, Reliable & Free URL Shortener';
 export const size = {
   width: 1200,
@@ -47,7 +46,6 @@ export default async function Image() {
             alignItems: 'center',
             gap: '16px',
             marginBottom: '28px',
-            zIndex: 1,
           }}
         >
           <div
@@ -96,7 +94,6 @@ export default async function Image() {
             justifyContent: 'center',
             gap: '16px',
             marginBottom: '20px',
-            zIndex: 1,
           }}
         >
           <span
@@ -134,7 +131,6 @@ export default async function Image() {
             maxWidth: '840px',
             margin: '0 0 44px 0',
             lineHeight: 1.4,
-            zIndex: 1,
           }}
         >
           Fast &amp; Reliable, single-page, open-source URL shortener with sub-20ms edge redirects.
@@ -145,14 +141,13 @@ export default async function Image() {
           style={{
             display: 'flex',
             gap: '14px',
-            zIndex: 1,
           }}
         >
           {[
-            '⚡ Sub-20ms Redirects',
-            '📊 Real-Time Analytics',
-            '🔒 Zero Login Required',
-            '🌱 Open Source',
+            'Sub-20ms Redirects',
+            'Real-Time Analytics',
+            'Zero Login Required',
+            'Open Source',
           ].map((feature) => (
             <div
               key={feature}

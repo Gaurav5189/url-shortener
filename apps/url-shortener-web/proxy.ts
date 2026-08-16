@@ -69,7 +69,25 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   const backendUrl = new URL(apiUrl);
   backendUrl.pathname = `/${shortCode}`;
 
-  return NextResponse.rewrite(backendUrl);
+  try {
+    const res = await fetch(backendUrl, {
+      method: request.method,
+      headers: request.headers,
+      redirect: 'manual',
+    });
+
+    if (res.status === 404) {
+      // Let Next.js router handle the 404 (which will render not-found.tsx)
+      return NextResponse.next();
+    }
+
+    // Return the backend response directly (e.g., 302 Redirect)
+    return res;
+  } catch (error) {
+    console.error("Backend proxy error:", error);
+    // Fallback to rewrite if fetch fails
+    return NextResponse.rewrite(backendUrl);
+  }
 }
 
 export const config = {
