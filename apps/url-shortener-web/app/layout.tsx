@@ -96,6 +96,9 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "gSG7Y5CUhuFZxtlMZfX6Vws8zZT6DRSxcJMdZyjwM_E",
+    other: {
+      "msvalidate.01": "F9B1978815149F649DB774C037CA8AB4",
+    },
   },
   category: "technology",
 };
