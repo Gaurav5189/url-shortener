@@ -31,7 +31,9 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     pathname === '/sitemap.xml' ||
     pathname === '/manifest.webmanifest' ||
     pathname.startsWith('/opengraph-image') ||
-    pathname.startsWith('/twitter-image')
+    pathname.startsWith('/twitter-image') ||
+    pathname === '/docs' ||
+    pathname.startsWith('/docs/')
   ) {
     return NextResponse.next();
   }
@@ -92,7 +94,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|stats|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|twitter-image).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|stats|docs|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|twitter-image).*)',
   ],
 };
 

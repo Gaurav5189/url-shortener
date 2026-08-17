@@ -21,7 +21,7 @@ export function Footer() {
         <div>
           <h2 className="footer-heading">Developers</h2>
           <div className="footer-links">
-            <Link href="/dev-docs" className="footer-link">
+            <Link href="/docs#dev-docs" className="footer-link">
               Docs
             </Link>
             <a
@@ -38,10 +38,10 @@ export function Footer() {
         <div>
           <h2 className="footer-heading">Legal</h2>
           <div className="footer-links">
-            <Link href="/privacy" className="footer-link">
+            <Link href="/docs#privacy" className="footer-link">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="footer-link">
+            <Link href="/docs#tos" className="footer-link">
               Terms of Service
             </Link>
           </div>

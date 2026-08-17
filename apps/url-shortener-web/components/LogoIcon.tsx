@@ -1,11 +1,15 @@
+import type { CSSProperties } from "react";
+
 export function LogoIcon({
   width = 32,
   height = 32,
   className = "",
+  style,
 }: {
   width?: number | string;
   height?: number | string;
   className?: string;
+  style?: CSSProperties;
 }) {
   return (
     <svg
@@ -16,6 +20,7 @@ export function LogoIcon({
       viewBox="120 79 260 260"
       preserveAspectRatio="xMidYMid meet"
       className={className}
+      style={style}
     >
       <g
         transform="translate(0.000000,500.000000) scale(0.100000,-0.100000)"

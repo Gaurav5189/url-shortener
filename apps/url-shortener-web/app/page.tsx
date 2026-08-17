@@ -58,7 +58,7 @@ export default function Home() {
 
         {/* Read Docs */}
         <div style={{ marginBottom: "64px", display: "flex", justifyContent: "center", width: "100%" }}>
-          <a href="/DOCS/README.md" className="read-docs-btn" style={{ marginTop: 0 }}>
+          <a href="/docs" className="read-docs-btn" style={{ marginTop: 0 }}>
             <BookOpen size={18} />
             <span>Read Docs</span>
           </a>
