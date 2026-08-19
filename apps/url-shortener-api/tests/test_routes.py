@@ -164,6 +164,58 @@ class TestShortenEndpoint:
         assert delta < 86400, f"Expiration delta too large: {delta}s"
 
 
+class TestRateLimiting:
+    """Tests for rate limiting on POST /api/urls/shorten."""
+
+    def test_rate_limit_allows_under_limit(self, client: TestClient, mock_redis: MagicMock):
+        # mock_redis.eval returns 1 for allowed
+        mock_redis.eval.return_value = "1"
+        
+        for _ in range(4):
+            resp = client.post(
+                "/api/urls/shorten",
+                json={"url": "https://example.com"},
+                headers={"X-Forwarded-For": "192.168.1.1"}
+            )
+            assert resp.status_code == 200
+
+    def test_rate_limit_rejects_over_limit(self, client: TestClient, mock_redis: MagicMock):
+        # mock_redis.eval returns 0 for rejected
+        mock_redis.eval.return_value = "0"
+        
+        resp = client.post(
+            "/api/urls/shorten",
+            json={"url": "https://example.com"},
+            headers={"X-Forwarded-For": "192.168.1.2"}
+        )
+        assert resp.status_code == 429
+        assert "Retry-After" in resp.headers
+        assert "Rate limit exceeded" in resp.json()["detail"]
+
+    def test_rate_limit_graceful_degradation(self, client: TestClient):
+        # Without Redis set (mock_redis fixture isn't used here), it should allow requests
+        # _redis will be None
+        routes_module.set_redis_client(None)
+        for _ in range(10):
+            resp = client.post(
+                "/api/urls/shorten",
+                json={"url": "https://example.com"},
+                headers={"X-Forwarded-For": "192.168.1.3"}
+            )
+            assert resp.status_code == 200
+
+    def test_rate_limit_redis_failure_allows(self, client: TestClient, mock_redis: MagicMock):
+        # If eval raises an exception, the request should be allowed (graceful degradation)
+        mock_redis.eval.side_effect = Exception("Redis connection error")
+        
+        resp = client.post(
+            "/api/urls/shorten",
+            json={"url": "https://example.com"},
+            headers={"X-Forwarded-For": "192.168.1.4"}
+        )
+        assert resp.status_code == 200
+
+
 # ── GET /{short_code} tests ─────────────────────────────────────────
 
 

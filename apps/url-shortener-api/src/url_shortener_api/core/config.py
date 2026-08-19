@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     # ── Constants ───────────────────────────────────────────────────
     LINK_TTL_DAYS: int = 84
     REDIS_CACHE_TTL_SECONDS: int = 43_200  # 12 hours (per blueprint)
+    RATE_LIMIT_PER_MINUTE: int = 4
+    RATE_LIMIT_PER_5HR: int = 50
 
 
 settings = Settings()

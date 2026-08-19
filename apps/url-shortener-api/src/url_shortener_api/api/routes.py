@@ -8,13 +8,14 @@ Endpoints:
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, HttpUrl
 from sqlmodel import Session, select
 
 from url_shortener_api.core import base62
 from url_shortener_api.core.config import settings
+from url_shortener_api.core.rate_limiter import get_client_ip, check_shorten_rate_limits
 from url_shortener_api.core.sync import purge_expired_urls, sync_analytics_to_db
 from url_shortener_api.db.models import URLMapping
 from url_shortener_api.db.session import get_session
@@ -54,8 +55,33 @@ class ShortenResponse(BaseModel):
 
 # ── POST /api/urls/shorten ──────────────────────────────────────────
 
+def rate_limit_shorten(request: Request):
+    """Enforce rate limits on shortening URLs."""
+    if _redis is None:
+        return
+        
+    client_ip = get_client_ip(request)
+    allowed, reason, retry_after = check_shorten_rate_limits(
+        _redis,
+        client_ip,
+        settings.RATE_LIMIT_PER_MINUTE,
+        settings.RATE_LIMIT_PER_5HR
+    )
+    
+    if not allowed:
+        limit_str = (
+            f"{settings.RATE_LIMIT_PER_MINUTE} requests per minute"
+            if reason == "per_minute"
+            else f"{settings.RATE_LIMIT_PER_5HR} requests per 5 hours"
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: maximum {limit_str}. Try again in {retry_after} seconds.",
+            headers={"Retry-After": str(retry_after)}
+        )
 
-@router.post("/api/urls/shorten", response_model=ShortenResponse)
+
+@router.post("/api/urls/shorten", response_model=ShortenResponse, dependencies=[Depends(rate_limit_shorten)])
 def shorten_url(
     body: ShortenRequest,
     session: Session = Depends(get_session),
