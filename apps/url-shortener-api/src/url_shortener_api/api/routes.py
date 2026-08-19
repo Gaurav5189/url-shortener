@@ -60,7 +60,7 @@ def rate_limit_shorten(request: Request):
     if _redis is None:
         return
         
-    client_ip = get_client_ip(request)
+    client_ip = get_client_ip(request, settings.TRUST_PROXY)
     allowed, reason, retry_after = check_shorten_rate_limits(
         _redis,
         client_ip,

@@ -5,7 +5,7 @@ to test the POST /api/urls/shorten and GET /{short_code} endpoints.
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -57,6 +57,7 @@ def mock_redis():
     """Provide a mocked Redis client and inject it into routes."""
     redis = MagicMock()
     redis.get.return_value = None
+    redis.eval.return_value = "0"
     routes_module.set_redis_client(redis)
     yield redis
     routes_module.set_redis_client(None)
@@ -164,12 +165,13 @@ class TestShortenEndpoint:
         assert delta < 86400, f"Expiration delta too large: {delta}s"
 
 
+@patch('url_shortener_api.api.routes.settings.TRUST_PROXY', True)
 class TestRateLimiting:
     """Tests for rate limiting on POST /api/urls/shorten."""
 
     def test_rate_limit_allows_under_limit(self, client: TestClient, mock_redis: MagicMock):
-        # mock_redis.eval returns 1 for allowed
-        mock_redis.eval.return_value = "1"
+        # mock_redis.eval returns 0 for allowed
+        mock_redis.eval.return_value = "0"
         
         for _ in range(4):
             resp = client.post(
@@ -179,9 +181,9 @@ class TestRateLimiting:
             )
             assert resp.status_code == 200
 
-    def test_rate_limit_rejects_over_limit(self, client: TestClient, mock_redis: MagicMock):
-        # mock_redis.eval returns 0 for rejected
-        mock_redis.eval.return_value = "0"
+    def test_rate_limit_rejects_over_per_minute(self, client: TestClient, mock_redis: MagicMock):
+        # mock_redis.eval returns positive integer for rejected (retry_after)
+        mock_redis.eval.return_value = "10"
         
         resp = client.post(
             "/api/urls/shorten",
@@ -190,7 +192,22 @@ class TestRateLimiting:
         )
         assert resp.status_code == 429
         assert "Retry-After" in resp.headers
-        assert "Rate limit exceeded" in resp.json()["detail"]
+        assert "per minute" in resp.json()["detail"]
+        assert resp.headers["Retry-After"] == "10"
+
+    def test_rate_limit_rejects_over_per_5hr(self, client: TestClient, mock_redis: MagicMock):
+        # First call (per-minute) passes, second call (5hr) rejects
+        mock_redis.eval.side_effect = ["0", "900"]
+        
+        resp = client.post(
+            "/api/urls/shorten",
+            json={"url": "https://example.com"},
+            headers={"X-Forwarded-For": "192.168.1.5"}
+        )
+        assert resp.status_code == 429
+        assert "Retry-After" in resp.headers
+        assert "per 5 hours" in resp.json()["detail"]
+        assert resp.headers["Retry-After"] == "900"
 
     def test_rate_limit_graceful_degradation(self, client: TestClient):
         # Without Redis set (mock_redis fixture isn't used here), it should allow requests

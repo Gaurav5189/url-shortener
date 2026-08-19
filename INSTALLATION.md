@@ -25,7 +25,8 @@ TURSO_AUTH_TOKEN=
 
 # Base URL for generated short link redirects
 BASE_URL=http://localhost:8000
-CRON_SECRET=your_cron_secret_here     # optional
+# Required: Set this to a unique high-entropy secret.
+CRON_SECRET=<unique-random-secret>
 
 # Optional: Upstash Redis credentials for caching (optional, if not provided, Redis caching will be disabled)
 UPSTASH_REDIS_REST_URL=https://<your-redis-db>.upstash.io
