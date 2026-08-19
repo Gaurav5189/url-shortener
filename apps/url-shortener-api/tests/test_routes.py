@@ -232,6 +232,14 @@ class TestRateLimiting:
         )
         assert resp.status_code == 200
 
+    def test_clean_ip_strips_ports(self):
+        from url_shortener_api.core.rate_limiter import _clean_ip
+        assert _clean_ip("49.42.157.72:43570") == "49.42.157.72"
+        assert _clean_ip("49.42.157.72:58342") == "49.42.157.72"
+        assert _clean_ip("49.42.157.72") == "49.42.157.72"
+        assert _clean_ip("[2001:db8::1]:8080") == "2001:db8::1"
+        assert _clean_ip("2001:db8::1") == "2001:db8::1"
+
 
 # ── GET /{short_code} tests ─────────────────────────────────────────
 

@@ -56,27 +56,46 @@ redis.call("EXPIRE", current_key, window_size * 2)
 return 0 -- Allowed
 """
 
+def _clean_ip(ip_str: str) -> str:
+    """Strip port numbers from IPv4 or IPv6 address strings."""
+    ip_str = ip_str.strip()
+    if ip_str.startswith("["):
+        # Bracketed IPv6 format: [2001:db8::1]:8080 -> 2001:db8::1
+        bracket_end = ip_str.find("]")
+        if bracket_end != -1:
+            return ip_str[1:bracket_end]
+    if ":" in ip_str and ip_str.count(":") == 1:
+        # IPv4 with port: 49.42.157.72:43570 -> 49.42.157.72
+        return ip_str.split(":")[0]
+    return ip_str
+
+
 def get_client_ip(request: Request, trust_proxy: bool) -> str:
     """
     Extract the real client IP, prioritizing load balancer headers if trusted.
+    Strips ephemeral source ports if present.
     
     1. X-Forwarded-For: Comma-separated list (client, proxy1, proxy2...). We take the first.
     2. X-Real-IP: Common Nginx/App Service header.
     3. request.client.host: Direct connection IP (fallback).
     """
+    raw_ip = ""
     if trust_proxy:
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             # Take the leftmost IP in case of multiple proxies
-            return forwarded_for.split(",")[0].strip()
-            
-        real_ip = request.headers.get("x-real-ip")
-        if real_ip:
-            return real_ip.strip()
-            
-    if request.client and request.client.host:
-        return request.client.host
-        
+            raw_ip = forwarded_for.split(",")[0]
+        else:
+            real_ip = request.headers.get("x-real-ip")
+            if real_ip:
+                raw_ip = real_ip
+
+    if not raw_ip and request.client and request.client.host:
+        raw_ip = request.client.host
+
+    if raw_ip:
+        return _clean_ip(raw_ip)
+
     return "unknown"
 
 def check_rate_limit(redis_client: Redis, client_id: str, window_sec: int, limit: int) -> Tuple[bool, int]:
